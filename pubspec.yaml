@@ -1,0 +1,16 @@
+name: query
+description: >
+  Search query parser to implement customized search.
+  Supports boolean groups, field scopes, ranges, comparisons...
+version: 1.0.0
+homepage: https://github.com/isoos/query
+author: Istvan Soos <istvan.soos@gmail.com>
+
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+
+dependencies:
+  petitparser: ^2.0.0
+
+dev_dependencies:
+  test: ^1.0.0
