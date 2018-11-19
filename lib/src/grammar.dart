@@ -45,7 +45,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
   // Handles scope:<exp>
   Parser<Query> scopedExpression() {
     final g =
-        (ref(IDENTIFIER) & char(':')).optional().map((list) => list?.first) &
+        (anyCharExcept(':') & char(':')).optional().map((list) => list?.first) &
             ref(exclusion);
     return g.map((list) =>
         list.first == null ? list.last : new FieldScope(list.first, list.last));
@@ -99,11 +99,12 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser<String> WORD_SEP() => whitespace().plus().map((_) => ' ');
 
   Parser WORD() {
-    final g = word().plus().map((list) => list.join());
+    final g = allowedChars().plus().map((list) => list.join());
     return g.map((str) => new TextQuery(str));
   }
 
-  Parser<String> IDENTIFIER() => word().plus().map((list) => list.join());
+  Parser<String> IDENTIFIER() =>
+      allowedChars().plus().map((list) => list.join());
 
   Parser COMP_OPERATOR() =>
       string('<=') |
@@ -112,30 +113,39 @@ class QueryGrammarDefinition extends GrammarDefinition {
       string('>') |
       string('!=') |
       string('=');
+
+  Parser<String> allowedChars() => anyCharExcept('[]:<!=>"');
 }
 
-Parser<String> nonWhitespace([String message = 'letter or digit expected']) {
-  return CharacterParser(const NonWhitespaceCharPredicate(), message);
+Parser<String> extendedWord([String message = 'letter or digit expected']) {
+  return CharacterParser(const ExtendedWordCharPredicate(), message);
 }
 
-class NonWhitespaceCharPredicate implements CharacterPredicate {
-  const NonWhitespaceCharPredicate();
-  static final _ws = new WhitespaceCharPredicate();
+class ExtendedWordCharPredicate implements CharacterPredicate {
+  const ExtendedWordCharPredicate();
 
   @override
-  bool test(int value) => !_ws.test(value);
+  bool test(int value) {
+    return (65 <= value && value <= 90 /* A..Z */) ||
+        (97 <= value && value <= 122 /* a..z */) ||
+        (48 <= value && value <= 57 /* 0..9 */) ||
+        (value == 95 /* _ */) ||
+        (value > 128);
+  }
 }
 
 Parser<String> anyCharExcept(String except,
     [String message = 'letter or digit expected']) {
-  return CharacterParser(const NonWhitespaceCharPredicate(), message);
+  return CharacterParser(new AnyCharExceptPredicate(except.codeUnits), message)
+      .plus()
+      .map((list) => list.join());
 }
 
 class AnyCharExceptPredicate implements CharacterPredicate {
-  final String except;
-  AnyCharExceptPredicate(this.except);
+  final List<int> exceptCodeUnits;
+  AnyCharExceptPredicate(this.exceptCodeUnits);
   static final _ws = new WhitespaceCharPredicate();
 
   @override
-  bool test(int value) => !_ws.test(value) && !except.codeUnits.contains(value);
+  bool test(int value) => !_ws.test(value) && !exceptCodeUnits.contains(value);
 }

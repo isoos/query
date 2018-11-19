@@ -8,6 +8,7 @@ void main() {
     test('1 string', () {
       expect(debugQuery('abc'), '<abc>');
       expect(debugQuery('"abc"'), '<"abc">');
+      expect(debugQuery('abc*'), '<abc*>');
     });
 
     test('2 strings', () {
@@ -39,6 +40,11 @@ void main() {
       expect(debugQuery('a:-"abc 1"'), 'a:-<"abc 1">');
     });
 
+    test('special scoped', () {
+      expect(debugQuery('a*:abc'), 'a*:<abc>');
+      expect(debugQuery('a%:"abc"'), 'a%:<"abc">');
+    });
+
     test('compare', () {
       expect(debugQuery('year < 2000'), '<year<2000>');
       expect(debugQuery('field >= "test case"'), '<field>="test case">');
@@ -65,6 +71,13 @@ void main() {
     test('#1', () {
       expect(debugQuery('a:-v1 b:(beta OR moon < Deimos OR [a TO e])'),
           '(a:-<v1> b:(<beta> OR <moon<Deimos> OR <[<a> TO <e>]>))');
+    });
+  });
+
+  group('unicode chars', () {
+    test('hungarian', () {
+      expect(
+          debugQuery('árvíztűrő TÜKÖRFÚRÓGÉP'), '(<árvíztűrő> <TÜKÖRFÚRÓGÉP>)');
     });
   });
 }
