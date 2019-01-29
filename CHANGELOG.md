@@ -1,3 +1,7 @@
+## 1.1.1
+
+- Support for new `petitparser` API.
+
 ## 1.1.0
 
 - Support for non-ASCII characters in scope and words.

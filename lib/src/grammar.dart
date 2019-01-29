@@ -132,6 +132,11 @@ class ExtendedWordCharPredicate implements CharacterPredicate {
         (value == 95 /* _ */) ||
         (value > 128);
   }
+
+  @override
+  bool isEqualTo(CharacterPredicate other) {
+    return (other is ExtendedWordCharPredicate);
+  }
 }
 
 Parser<String> anyCharExcept(String except,
@@ -148,4 +153,9 @@ class AnyCharExceptPredicate implements CharacterPredicate {
 
   @override
   bool test(int value) => !_ws.test(value) && !exceptCodeUnits.contains(value);
+
+  @override
+  bool isEqualTo(CharacterPredicate other) {
+    return (other is AnyCharExceptPredicate) && identical(this, other);
+  }
 }
