@@ -65,6 +65,12 @@ void main() {
     test('3 items', () {
       expect(debugQuery('a OR b OR c'), '(<a> OR <b> OR <c>)');
     });
+
+    test('precedence of implicit AND, explicit OR', () {
+      expect(debugQuery('a b OR c'), '(<a> (<b> OR <c>))');
+      expect(debugQuery('a OR b c'), '(<a> OR (<b> <c>))');
+      expect(debugQuery('a OR b c OR d'), '(<a> OR (<b> (<c> OR <d>)))');
+    });
   });
 
   group('complex cases', () {

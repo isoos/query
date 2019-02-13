@@ -1,3 +1,7 @@
+## 1.1.2
+
+- More lints and checks in `analysis_options.yaml`.
+
 ## 1.1.1
 
 - Support for new `petitparser` API.

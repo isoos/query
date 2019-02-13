@@ -18,7 +18,8 @@ class QueryGrammarDefinition extends GrammarDefinition {
     final g =
         ref(or) & (ref(rootSep) & ref(or)).map((list) => list.last).star();
     return g.map((list) {
-      final children = <Query>[list.first]..addAll((list.last as List).cast());
+      final children = <Query>[list.first as Query]
+        ..addAll((list.last as List).cast<Query>());
       if (children.length == 1) return children.single;
       return new AndQuery(children);
     });
@@ -31,7 +32,8 @@ class QueryGrammarDefinition extends GrammarDefinition {
     final g = ref(scopedExpression) &
         (string(' OR ') & ref(root)).map((list) => list.last).star();
     return g.map((list) {
-      final children = <Query>[list.first]..addAll((list.last as List).cast());
+      final children = <Query>[list.first as Query]
+        ..addAll((list.last as List).cast<Query>());
       if (children.length == 1) return children.single;
       final second = children.last;
       if (children.length == 2 && second is OrQuery) {
@@ -47,16 +49,18 @@ class QueryGrammarDefinition extends GrammarDefinition {
     final g =
         (anyCharExcept(':') & char(':')).optional().map((list) => list?.first) &
             ref(exclusion);
-    return g.map((list) =>
-        list.first == null ? list.last : new FieldScope(list.first, list.last));
+    return g.map((list) => list.first == null
+        ? list.last as Query
+        : new FieldScope(list.first as String, list.last as Query));
   }
 
   // Handles -<exp>
   Parser<Query> exclusion() {
     final g = (char('-') | (string('NOT') & ref(EXP_SEP))).optional() &
         ref(expression);
-    return g.map(
-        (list) => list.first == null ? list.last : new NotQuery(list.last));
+    return g.map((list) => list.first == null
+        ? list.last as Query
+        : new NotQuery(list.last as Query));
   }
 
   Parser expression() =>
@@ -70,7 +74,8 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ref(COMP_OPERATOR) &
         ref(EXP_SEP).optional() &
         ref(wordOrExact);
-    return g.map((list) => new FieldCompareQuery(list[0], list[2], list[4]));
+    return g.map((list) => new FieldCompareQuery(
+        list[0] as String, list[2] as String, list[4] as TextQuery));
   }
 
   Parser range() {
@@ -80,7 +85,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ref(wordOrExact) &
         ref(rangeSep);
     return g.map((list) {
-      return new RangeQuery(list[1], list[3],
+      return new RangeQuery(list[1] as TextQuery, list[3] as TextQuery,
           startInclusive: list[0] == '[', endInclusive: list[4] == ']');
     });
   }
@@ -91,7 +96,8 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser exact() {
     final g = char('"') & pattern('^"').plus() & char('"');
-    return g.map((list) => new TextQuery(list[1].join(), isExactMatch: true));
+    return g.map(
+        (list) => new TextQuery((list[1] as List).join(), isExactMatch: true));
   }
 
   Parser<String> EXP_SEP() => WORD_SEP();
