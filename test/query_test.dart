@@ -78,6 +78,10 @@ void main() {
       expect(debugQuery('a:-v1 b:(beta OR moon < Deimos OR [a TO e])'),
           '(a:-<v1> b:(<beta> OR <moon<Deimos> OR <[<a> TO <e>]>))');
     });
+
+    test('#2', () {
+      expect(debugQuery('a = 2000 b > 2000 c'), '(<a=2000> <b>2000> <c>)');
+    });
   });
 
   group('unicode chars', () {
