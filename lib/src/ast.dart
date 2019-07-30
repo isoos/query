@@ -8,7 +8,7 @@ abstract class Query {
   /// [debug] is used to extend the format with additional characters, making
   /// testing unambiguous.
   @override
-  String toString({bool debug: false});
+  String toString({bool debug = false});
 }
 
 /// Text query to match [text].
@@ -20,7 +20,7 @@ class TextQuery implements Query {
   TextQuery(this.text, {this.isExactMatch = false});
 
   @override
-  String toString({bool debug: false}) =>
+  String toString({bool debug = false}) =>
       _debug(debug, isExactMatch ? '"$text"' : text);
 }
 
@@ -32,7 +32,7 @@ class FieldScope implements Query {
   FieldScope(this.field, this.child);
 
   @override
-  String toString({bool debug: false}) =>
+  String toString({bool debug = false}) =>
       '$field:${child.toString(debug: debug)}';
 }
 
@@ -45,7 +45,8 @@ class FieldCompareQuery implements Query {
   FieldCompareQuery(this.field, this.operator, this.text);
 
   @override
-  String toString({bool debug: false}) => _debug(debug, '$field$operator$text');
+  String toString({bool debug = false}) =>
+      _debug(debug, '$field$operator$text');
 }
 
 /// Describes a range query between [start] and [end].
@@ -59,7 +60,7 @@ class RangeQuery implements Query {
       {this.startInclusive = true, this.endInclusive = true});
 
   @override
-  String toString({bool debug: false}) => _debug(
+  String toString({bool debug = false}) => _debug(
       debug,
       '${_sp(true, startInclusive)}${start.toString(debug: debug)} TO '
       '${end.toString(debug: debug)}${_sp(false, endInclusive)}');
@@ -75,7 +76,7 @@ class NotQuery implements Query {
   NotQuery(this.child);
 
   @override
-  String toString({bool debug: false}) => '-${child.toString(debug: debug)}';
+  String toString({bool debug = false}) => '-${child.toString(debug: debug)}';
 }
 
 /// Bool AND composition of [children] queries.
@@ -85,7 +86,7 @@ class AndQuery implements Query {
   AndQuery(this.children);
 
   @override
-  String toString({bool debug: false}) =>
+  String toString({bool debug = false}) =>
       '(' + children.map((n) => n.toString(debug: debug)).join(' ') + ')';
 }
 
@@ -96,7 +97,7 @@ class OrQuery implements Query {
   OrQuery(this.children);
 
   @override
-  String toString({bool debug: false}) =>
+  String toString({bool debug = false}) =>
       '(' + children.map((n) => n.toString(debug: debug)).join(' OR ') + ')';
 }
 

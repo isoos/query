@@ -21,7 +21,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
       final children = <Query>[list.first as Query]
         ..addAll((list.last as List).cast<Query>());
       if (children.length == 1) return children.single;
-      return new AndQuery(children);
+      return AndQuery(children);
     });
   }
 
@@ -40,7 +40,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
         second.children.insert(0, children.first);
         return second;
       }
-      return new OrQuery(children);
+      return OrQuery(children);
     });
   }
 
@@ -51,16 +51,15 @@ class QueryGrammarDefinition extends GrammarDefinition {
             ref(exclusion);
     return g.map((list) => list.first == null
         ? list.last as Query
-        : new FieldScope(list.first as String, list.last as Query));
+        : FieldScope(list.first as String, list.last as Query));
   }
 
   // Handles -<exp>
   Parser<Query> exclusion() {
     final g = (char('-') | (string('NOT') & ref(EXP_SEP))).optional() &
         ref(expression);
-    return g.map((list) => list.first == null
-        ? list.last as Query
-        : new NotQuery(list.last as Query));
+    return g.map((list) =>
+        list.first == null ? list.last as Query : NotQuery(list.last as Query));
   }
 
   Parser expression() =>
@@ -74,7 +73,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ref(COMP_OPERATOR) &
         ref(EXP_SEP).optional() &
         ref(wordOrExact);
-    return g.map((list) => new FieldCompareQuery(
+    return g.map((list) => FieldCompareQuery(
         list[0] as String, list[2] as String, list[4] as TextQuery));
   }
 
@@ -85,7 +84,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ref(wordOrExact) &
         ref(rangeSep);
     return g.map((list) {
-      return new RangeQuery(list[1] as TextQuery, list[3] as TextQuery,
+      return RangeQuery(list[1] as TextQuery, list[3] as TextQuery,
           startInclusive: list[0] == '[', endInclusive: list[4] == ']');
     });
   }
@@ -96,8 +95,8 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser exact() {
     final g = char('"') & pattern('^"').plus() & char('"');
-    return g.map(
-        (list) => new TextQuery((list[1] as List).join(), isExactMatch: true));
+    return g
+        .map((list) => TextQuery((list[1] as List).join(), isExactMatch: true));
   }
 
   Parser<String> EXP_SEP() => WORD_SEP();
@@ -106,7 +105,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser WORD() {
     final g = allowedChars().plus().map((list) => list.join());
-    return g.map((str) => new TextQuery(str));
+    return g.map((str) => TextQuery(str));
   }
 
   Parser<String> IDENTIFIER() =>
@@ -147,7 +146,7 @@ class ExtendedWordCharPredicate implements CharacterPredicate {
 
 Parser<String> anyCharExcept(String except,
     [String message = 'letter or digit expected']) {
-  return CharacterParser(new AnyCharExceptPredicate(except.codeUnits), message)
+  return CharacterParser(AnyCharExceptPredicate(except.codeUnits), message)
       .plus()
       .map((list) => list.join());
 }
@@ -155,7 +154,7 @@ Parser<String> anyCharExcept(String except,
 class AnyCharExceptPredicate implements CharacterPredicate {
   final List<int> exceptCodeUnits;
   AnyCharExceptPredicate(this.exceptCodeUnits);
-  static final _ws = new WhitespaceCharPredicate();
+  static final _ws = WhitespaceCharPredicate();
 
   @override
   bool test(int value) => !_ws.test(value) && !exceptCodeUnits.contains(value);

@@ -1,3 +1,7 @@
+## 1.2.0
+
+- Update sources to Dart 2.3 SDK and lints.
+
 ## 1.1.2
 
 - More lints and checks in `analysis_options.yaml`.

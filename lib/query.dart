@@ -3,7 +3,7 @@ import 'src/grammar.dart';
 
 export 'src/ast.dart';
 
-final _parser = new QueryParser();
+final _parser = QueryParser();
 
 /// Parses [input] and returns a parsed [Query].
 Query parseQuery(String input) {
