@@ -62,14 +62,33 @@ void main() {
       expect(debugQuery('a OR b'), '(<a> OR <b>)');
     });
 
+    test('2 items pipe', () {
+      expect(debugQuery('a | b'), '(<a> OR <b>)');
+    });
+
     test('3 items', () {
       expect(debugQuery('a OR b OR c'), '(<a> OR <b> OR <c>)');
+    });
+
+    test('3 items pipe', () {
+      expect(debugQuery('a | b | c'), '(<a> OR <b> OR <c>)');
+    });
+
+    test('3 items pipe mixed', () {
+      expect(debugQuery('a OR b | c'), '(<a> OR <b> OR <c>)');
+      expect(debugQuery('a | b OR c'), '(<a> OR <b> OR <c>)');
     });
 
     test('precedence of implicit AND, explicit OR', () {
       expect(debugQuery('a b OR c'), '(<a> (<b> OR <c>))');
       expect(debugQuery('a OR b c'), '(<a> OR (<b> <c>))');
       expect(debugQuery('a OR b c OR d'), '(<a> OR (<b> (<c> OR <d>)))');
+    });
+
+    test('precedence of implicit AND, explicit OR pipe', () {
+      expect(debugQuery('a b | c'), '(<a> (<b> OR <c>))');
+      expect(debugQuery('a | b c'), '(<a> OR (<b> <c>))');
+      expect(debugQuery('a | b c | d'), '(<a> OR (<b> (<c> OR <d>)))');
     });
   });
 

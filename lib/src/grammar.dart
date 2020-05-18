@@ -30,7 +30,9 @@ class QueryGrammarDefinition extends GrammarDefinition {
   // Handles <exp> OR <exp> sequences.
   Parser<Query> or() {
     final g = ref(scopedExpression) &
-        (string(' OR ') & ref(root)).map((list) => list.last).star();
+        ((string(' | ') | string(' OR ')) & ref(root))
+            .map((list) => list.last)
+            .star();
     return g.map((list) {
       final children = <Query>[list.first as Query]
         ..addAll((list.last as List).cast<Query>());
