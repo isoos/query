@@ -12,16 +12,23 @@ abstract class Query {
 }
 
 /// Text query to match [text].
-///
-/// [isExactMatch] is set when the [text] was inside quotes.
 class TextQuery implements Query {
   final String text;
-  final bool isExactMatch;
-  TextQuery(this.text, {this.isExactMatch = false});
+  TextQuery(this.text);
+
+  @override
+  String toString({bool debug = false}) => _debug(debug, text);
+}
+
+/// Phrase query to match "[text]" for a list of words inside quotes.
+class PhraseQuery extends TextQuery {
+  final List<TextQuery> children;
+  PhraseQuery(this.children)
+      : super(children.isEmpty ? '""' : '"${children.join(" ")}"');
 
   @override
   String toString({bool debug = false}) =>
-      _debug(debug, isExactMatch ? '"$text"' : text);
+      '"' + children.map((n) => n.toString(debug: debug)).join(' ') + '"';
 }
 
 /// Scopes [child] [Query] to be applied only on the [field].

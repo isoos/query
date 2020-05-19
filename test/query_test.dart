@@ -8,16 +8,16 @@ void main() {
   group('Base expressions', () {
     test('1 string', () {
       expect(debugQuery('abc'), '<abc>');
-      expect(debugQuery('"abc"'), '<"abc">');
+      expect(debugQuery('"abc"'), '"<abc>"');
       expect(debugQuery('abc*'), '<abc*>');
     });
 
     test('2 strings', () {
       expect(debugQuery('abc def'), '(<abc> <def>)');
-      expect(debugQuery('"abc 1" def'), '(<"abc 1"> <def>)');
-      expect(debugQuery('abc "def 2"'), '(<abc> <"def 2">)');
-      expect(debugQuery('"abc" "def"'), '(<"abc"> <"def">)');
-      expect(debugQuery('"abc 1" "def 2"'), '(<"abc 1"> <"def 2">)');
+      expect(debugQuery('"abc 1" def'), '("<abc> <1>" <def>)');
+      expect(debugQuery('abc "def 2"'), '(<abc> "<def> <2>")');
+      expect(debugQuery('"abc" "def"'), '("<abc>" "<def>")');
+      expect(debugQuery('"abc 1" "def 2"'), '("<abc> <1>" "<def> <2>")');
     });
 
     test('explicit AND', () {
@@ -26,24 +26,24 @@ void main() {
 
     test('negative word', () {
       expect(debugQuery('-abc'), '-<abc>');
-      expect(debugQuery('-"abc"'), '-<"abc">');
-      expect(debugQuery('-"abc 1"'), '-<"abc 1">');
+      expect(debugQuery('-"abc"'), '-"<abc>"');
+      expect(debugQuery('-"abc 1"'), '-"<abc> <1>"');
 
       expect(debugQuery('NOT abc'), '-<abc>');
-      expect(debugQuery('NOT "abc"'), '-<"abc">');
-      expect(debugQuery('NOT "abc 1"'), '-<"abc 1">');
+      expect(debugQuery('NOT "abc"'), '-"<abc>"');
+      expect(debugQuery('NOT "abc 1"'), '-"<abc> <1>"');
     });
 
     test('scoped', () {
       expect(debugQuery('a:abc'), 'a:<abc>');
-      expect(debugQuery('a:"abc"'), 'a:<"abc">');
-      expect(debugQuery('a:"abc 1"'), 'a:<"abc 1">');
-      expect(debugQuery('a:-"abc 1"'), 'a:-<"abc 1">');
+      expect(debugQuery('a:"abc"'), 'a:"<abc>"');
+      expect(debugQuery('a:"abc 1"'), 'a:"<abc> <1>"');
+      expect(debugQuery('a:-"abc 1"'), 'a:-"<abc> <1>"');
     });
 
     test('special scoped', () {
       expect(debugQuery('a*:abc'), 'a*:<abc>');
-      expect(debugQuery('a%:"abc"'), 'a%:<"abc">');
+      expect(debugQuery('a%:"abc"'), 'a%:"<abc>"');
     });
 
     test('compare', () {
@@ -54,7 +54,7 @@ void main() {
     test('range', () {
       expect(debugQuery('[1 TO 10]'), '<[<1> TO <10>]>');
       expect(debugQuery(']1 TO 10['), '<]<1> TO <10>[>');
-      expect(debugQuery(']"1 a" TO "10 b"['), '<]<"1 a"> TO <"10 b">[>');
+      expect(debugQuery(']"1 a" TO "10 b"['), '<]"<1> <a>" TO "<10> <b>"[>');
     });
   });
 
@@ -138,6 +138,33 @@ void main() {
       expect(debugQuery('(a OR b) OR c'), '(((<a> OR <b>)) OR <c>)');
       expect(debugQuery('(a OR b) c'), '(((<a> OR <b>)) <c>)');
       expect(debugQuery('((a OR b) c) | d'), '(((((<a> OR <b>)) <c>)) OR <d>)');
+    });
+  });
+
+  group('phrase match', () {
+    test('empty phrase', () {
+      expect(debugQuery('""'), '""');
+    });
+    test('empty phrase with space', () {
+      expect(debugQuery('"  "'), '""');
+    });
+    test('simple word phrase', () {
+      expect(debugQuery('"a"'), '"<a>"');
+    });
+    test('single word phrase with space', () {
+      expect(debugQuery('" a "'), '"<a>"');
+    });
+    test('two word phrase', () {
+      expect(debugQuery('"a b"'), '"<a> <b>"');
+    });
+    test('three word phrase', () {
+      expect(debugQuery('"a b c"'), '"<a> <b> <c>"');
+    });
+    test('three word phrase with AND', () {
+      expect(debugQuery('"a AND b"'), '"<a> <AND> <b>"');
+    });
+    test('three word phrase with OR', () {
+      expect(debugQuery('"a OR b"'), '"<a> <OR> <b>"');
     });
   });
 }
