@@ -139,6 +139,12 @@ void main() {
       expect(debugQuery('(a OR b) c'), '(((<a> OR <b>)) <c>)');
       expect(debugQuery('((a OR b) c) | d'), '(((((<a> OR <b>)) <c>)) OR <d>)');
     });
+    test('negative grouping', () {
+      expect(debugQuery('-(a OR b) OR c'), '(-((<a> OR <b>)) OR <c>)');
+      expect(debugQuery('(a OR -b) c'), '(((<a> OR -<b>)) <c>)');
+      expect(debugQuery('-(-(a OR -b) -c) | -(d)'),
+          '(-((-((<a> OR -<b>)) -<c>)) OR -(<d>))');
+    });
   });
 
   group('phrase match', () {
@@ -165,6 +171,12 @@ void main() {
     });
     test('three word phrase with OR', () {
       expect(debugQuery('"a OR b"'), '"<a> <OR> <b>"');
+    });
+    test('negative phrase grouping', () {
+      expect(debugQuery('-("a OR b") OR c'), '(-("<a> <OR> <b>") OR <c>)');
+      expect(debugQuery('(a OR -"b") ("c")'), '(((<a> OR -"<b>")) ("<c>"))');
+      expect(debugQuery('-(-"a OR -b" -c) | -"d"'),
+          '(-((-"<a> <OR> <-b>" -<c>)) OR -"<d>")');
     });
   });
 }
