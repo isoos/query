@@ -79,6 +79,15 @@ class NotQuery implements Query {
   String toString({bool debug = false}) => '-${child.toString(debug: debug)}';
 }
 
+/// Groups the [child] query to override implicit precedence.
+class GroupQuery implements Query {
+  final Query child;
+  GroupQuery(this.child);
+
+  @override
+  String toString({bool debug = false}) => '(${child.toString(debug: debug)})';
+}
+
 /// Bool AND composition of [children] queries.
 class AndQuery implements Query {
   final List<Query> children;

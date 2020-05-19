@@ -1,4 +1,5 @@
 import 'package:query/query.dart';
+import 'package:petitparser/petitparser.dart';
 import 'package:test/test.dart';
 
 String debugQuery(String input) => parseQuery(input).toString(debug: true);
@@ -95,7 +96,7 @@ void main() {
   group('complex cases', () {
     test('#1', () {
       expect(debugQuery('a:-v1 b:(beta OR moon < Deimos OR [a TO e])'),
-          '(a:-<v1> b:(<beta> OR <moon<Deimos> OR <[<a> TO <e>]>))');
+          '(a:-<v1> b:((<beta> OR <moon<Deimos> OR <[<a> TO <e>]>)))');
     });
 
     test('#2', () {
@@ -107,6 +108,36 @@ void main() {
     test('hungarian', () {
       expect(
           debugQuery('árvíztűrő TÜKÖRFÚRÓGÉP'), '(<árvíztűrő> <TÜKÖRFÚRÓGÉP>)');
+    });
+  });
+
+  group('grouping precedence', () {
+    test('empty group', () {
+      expect(debugQuery('()'), '(<>)');
+    });
+    test('empty group with space', () {
+      expect(debugQuery('(  )'), '(<>)');
+    });
+    test('single item group', () {
+      expect(debugQuery('(a)'), '(<a>)');
+    });
+    test('single item group with space', () {
+      expect(debugQuery('( a )'), '(<a>)');
+    });
+    test('grouping with two items implicit AND', () {
+      expect(debugQuery('(a b)'), '((<a> <b>))');
+    });
+    test('grouping with two items explicit AND', () {
+      expect(debugQuery('(a AND b)'), '((<a> <b>))');
+    });
+    test('grouping with multiple items', () {
+      expect(debugQuery('(a | b) c (d | e)'),
+          '(((<a> OR <b>)) <c> ((<d> OR <e>)))');
+    });
+    test('nested grouping', () {
+      expect(debugQuery('(a OR b) OR c'), '(((<a> OR <b>)) OR <c>)');
+      expect(debugQuery('(a OR b) c'), '(((<a> OR <b>)) <c>)');
+      expect(debugQuery('((a OR b) c) | d'), '(((((<a> OR <b>)) <c>)) OR <d>)');
     });
   });
 }

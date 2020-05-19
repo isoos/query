@@ -29,7 +29,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   // Handles <exp> OR <exp> sequences.
   Parser<Query> or() {
-    final g = ref(scopedExpression) &
+    final g = (ref(scopedExpression) | ref(group)) &
         ((string(' | ') | string(' OR ')) & ref(root))
             .map((list) => list.last)
             .star();
@@ -67,7 +67,14 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser expression() =>
       ref(group) | ref(exact) | ref(range) | ref(comparison) | ref(WORD);
 
-  Parser group() => (char('(') & ref(root) & char(')')).map((list) => list[1]);
+  Parser group() => (char('(') &
+          ref(EXP_SEP).star() &
+          ref(root).optional() &
+          ref(EXP_SEP).star() &
+          char(')'))
+      .map((list) => list[2] == null
+          ? GroupQuery(TextQuery(""))
+          : GroupQuery(list[2] as Query));
 
   Parser comparison() {
     final g = ref(IDENTIFIER) &
@@ -121,7 +128,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
       string('!=') |
       string('=');
 
-  Parser<String> allowedChars() => anyCharExcept('[]:<!=>"');
+  Parser<String> allowedChars() => anyCharExcept('[]():<!=>"');
 }
 
 Parser<String> extendedWord([String message = 'letter or digit expected']) {
