@@ -105,12 +105,12 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser exact() {
     final g = char('"') &
         ref(EXP_SEP).star() &
-        (ref(WORD) & ref(EXP_SEP).star()).star() &
+        (pattern('^" \t\n\r').plus() & ref(EXP_SEP).star()).star() &
         char('"');
     return g.map((list) {
       final children = <TextQuery>[];
       for (var w in list[2]) {
-        children.add(w.first as TextQuery);
+        children.add(TextQuery((w.first as List).join()));
       }
       return PhraseQuery(children);
     });

@@ -178,5 +178,9 @@ void main() {
       expect(debugQuery('-(-"a OR -b" -c) | -"d"'),
           '(-((-"<a> <OR> <-b>" -<c>)) OR -"<d>")');
     });
+    test('phrase with parenthesis', () {
+      expect(debugQuery('"(a OR -b)" -("-c | []")'),
+          '("<(a> <OR> <-b)>" -("<-c> <|> <[]>"))');
+    });
   });
 }
