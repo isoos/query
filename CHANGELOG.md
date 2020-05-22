@@ -1,3 +1,11 @@
+## 1.3.0
+
+- nested groups
+- `|` as alias for `OR`
+- phrase search expression contain the separate words/phrases as a children list
+
+Thanks to [edyu](https://github.com/edyu) on [#3](https://github.com/isoos/query/pull/3).
+
 ## 1.2.0
 
 - Update sources to Dart 2.3 SDK and lints.
