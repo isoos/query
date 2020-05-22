@@ -24,6 +24,16 @@ class TextQuery implements Query {
       _debug(debug, isExactMatch ? '"$text"' : text);
 }
 
+/// Phrase query to match "[text]" for a list of words inside quotes.
+class PhraseQuery extends TextQuery {
+  final List<TextQuery> children;
+  PhraseQuery(String phrase, this.children) : super(phrase, isExactMatch: true);
+
+  @override
+  String toString({bool debug = false}) =>
+      '"' + children.map((n) => n.toString(debug: debug)).join(' ') + '"';
+}
+
 /// Scopes [child] [Query] to be applied only on the [field].
 class FieldScope implements Query {
   final String field;
@@ -77,6 +87,15 @@ class NotQuery implements Query {
 
   @override
   String toString({bool debug = false}) => '-${child.toString(debug: debug)}';
+}
+
+/// Groups the [child] query to override implicit precedence.
+class GroupQuery implements Query {
+  final Query child;
+  GroupQuery(this.child);
+
+  @override
+  String toString({bool debug = false}) => '(${child.toString(debug: debug)})';
 }
 
 /// Bool AND composition of [children] queries.

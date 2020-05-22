@@ -29,8 +29,10 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   // Handles <exp> OR <exp> sequences.
   Parser<Query> or() {
-    final g = ref(scopedExpression) &
-        (string(' OR ') & ref(root)).map((list) => list.last).star();
+    final g = (ref(scopedExpression) | ref(group)) &
+        ((string(' | ') | string(' OR ')) & ref(root))
+            .map((list) => list.last)
+            .star();
     return g.map((list) {
       final children = <Query>[list.first as Query]
         ..addAll((list.last as List).cast<Query>());
@@ -65,7 +67,14 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser expression() =>
       ref(group) | ref(exact) | ref(range) | ref(comparison) | ref(WORD);
 
-  Parser group() => (char('(') & ref(root) & char(')')).map((list) => list[1]);
+  Parser group() => (char('(') &
+          ref(EXP_SEP).star() &
+          ref(root).optional() &
+          ref(EXP_SEP).star() &
+          char(')'))
+      .map((list) => list[2] == null
+          ? GroupQuery(TextQuery(""))
+          : GroupQuery(list[2] as Query));
 
   Parser comparison() {
     final g = ref(IDENTIFIER) &
@@ -94,9 +103,21 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser wordOrExact() => ref(exact) | ref(WORD);
 
   Parser exact() {
-    final g = char('"') & pattern('^"').plus() & char('"');
-    return g
-        .map((list) => TextQuery((list[1] as List).join(), isExactMatch: true));
+    final g = char('"') &
+        ref(EXP_SEP).star() &
+        (pattern('^" \t\n\r').plus() & ref(EXP_SEP).star()).star() &
+        char('"');
+    return g.map((list) {
+      final children = <TextQuery>[];
+      var phrase = list[1].join() as String;
+      for (var w in list[2]) {
+        var word = w.first.join() as String;
+        var sep = w[1].join() as String;
+        phrase += '${word}${sep}';
+        children.add(TextQuery(word));
+      }
+      return PhraseQuery(phrase, children);
+    });
   }
 
   Parser<String> EXP_SEP() => WORD_SEP();
@@ -119,7 +140,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
       string('!=') |
       string('=');
 
-  Parser<String> allowedChars() => anyCharExcept('[]:<!=>"');
+  Parser<String> allowedChars() => anyCharExcept('[]():<!=>"');
 }
 
 Parser<String> extendedWord([String message = 'letter or digit expected']) {
