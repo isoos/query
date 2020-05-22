@@ -12,19 +12,22 @@ abstract class Query {
 }
 
 /// Text query to match [text].
+///
+/// [isExactMatch] is set when the [text] was inside quotes.
 class TextQuery implements Query {
   final String text;
-  TextQuery(this.text);
+  final bool isExactMatch;
+  TextQuery(this.text, {this.isExactMatch = false});
 
   @override
-  String toString({bool debug = false}) => _debug(debug, text);
+  String toString({bool debug = false}) =>
+      _debug(debug, isExactMatch ? '"$text"' : text);
 }
 
 /// Phrase query to match "[text]" for a list of words inside quotes.
 class PhraseQuery extends TextQuery {
   final List<TextQuery> children;
-  PhraseQuery(this.children)
-      : super(children.isEmpty ? '""' : '"${children.join(" ")}"');
+  PhraseQuery(String phrase, this.children) : super(phrase, isExactMatch: true);
 
   @override
   String toString({bool debug = false}) =>

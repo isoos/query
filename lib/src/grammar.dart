@@ -109,10 +109,14 @@ class QueryGrammarDefinition extends GrammarDefinition {
         char('"');
     return g.map((list) {
       final children = <TextQuery>[];
+      var phrase = list[1].join() as String;
       for (var w in list[2]) {
-        children.add(TextQuery((w.first as List).join()));
+        var word = w.first.join() as String;
+        var sep = w[1].join() as String;
+        phrase += '${word}${sep}';
+        children.add(TextQuery(word));
       }
-      return PhraseQuery(children);
+      return PhraseQuery(phrase, children);
     });
   }
 
