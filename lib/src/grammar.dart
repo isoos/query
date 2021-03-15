@@ -18,8 +18,10 @@ class QueryGrammarDefinition extends GrammarDefinition {
     final g =
         ref(or) & (ref(rootSep) & ref(or)).map((list) => list.last).star();
     return g.map((list) {
-      final children = <Query>[list.first as Query]
-        ..addAll((list.last as List).cast<Query>());
+      final children = <Query>[
+        list.first as Query,
+        ...(list.last as List).cast<Query>(),
+      ];
       if (children.length == 1) return children.single;
       return AndQuery(children);
     });
@@ -34,8 +36,10 @@ class QueryGrammarDefinition extends GrammarDefinition {
             .map((list) => list.last)
             .star();
     return g.map((list) {
-      final children = <Query>[list.first as Query]
-        ..addAll((list.last as List).cast<Query>());
+      final children = <Query>[
+        list.first as Query,
+        ...(list.last as List).cast<Query>(),
+      ];
       if (children.length == 1) return children.single;
       final second = children.last;
       if (children.length == 2 && second is OrQuery) {
@@ -73,7 +77,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
           ref(EXP_SEP).star() &
           char(')'))
       .map((list) => list[2] == null
-          ? GroupQuery(TextQuery(""))
+          ? GroupQuery(TextQuery(''))
           : GroupQuery(list[2] as Query));
 
   Parser comparison() {
@@ -113,7 +117,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
       for (var w in list[2]) {
         var word = w.first.join() as String;
         var sep = w[1].join() as String;
-        phrase += '${word}${sep}';
+        phrase += '$word$sep';
         children.add(TextQuery(word));
       }
       return PhraseQuery(phrase, children);

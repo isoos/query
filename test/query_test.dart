@@ -1,5 +1,4 @@
 import 'package:query/query.dart';
-import 'package:petitparser/petitparser.dart';
 import 'package:test/test.dart';
 
 String debugQuery(String input) => parseQuery(input).toString(debug: true);
