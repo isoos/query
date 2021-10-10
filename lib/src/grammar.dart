@@ -1,4 +1,5 @@
 import 'package:petitparser/petitparser.dart';
+import 'package:query/src/matcher.dart';
 
 import 'ast.dart';
 
@@ -134,13 +135,12 @@ class QueryGrammarDefinition extends GrammarDefinition {
       allowedChars().plus().map((list) => list.join());
 
   Parser COMP_OPERATOR() =>
-      string('<=') |
-      string('<') |
-      string('>=') |
-      string('>') |
-      string('!=') |
-      string('=');
-
+      string(OP_LESS_OR_EQUAL) |
+      string(OP_LESS) |
+      string(OP_MORE_OR_EQUAL) |
+      string(OP_MORE) |
+      string(OP_NOT_EQAUL) |
+      string(OP_EQUAL);
   Parser<String> allowedChars() => anyCharExcept('[]():<!=>"');
 }
 
