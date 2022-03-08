@@ -101,6 +101,11 @@ void main() {
     test('#2', () {
       expect(debugQuery('a = 2000 b > 2000 c'), '(<a=2000> <b>2000> <c>)');
     });
+
+    test('#3', () {
+      // TODO: fix
+      // expect(debugQuery('(f:abc)'), '');
+    });
   });
 
   group('unicode chars', () {

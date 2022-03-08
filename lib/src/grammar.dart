@@ -2,6 +2,7 @@ import 'package:petitparser/petitparser.dart';
 
 import 'ast.dart';
 
+@Deprecated('Use QueryGrammarDefinition.build instead.')
 class QueryParser extends GrammarParser {
   QueryParser() : super(const QueryGrammarDefinition());
 }
@@ -10,13 +11,13 @@ class QueryGrammarDefinition extends GrammarDefinition {
   const QueryGrammarDefinition();
 
   @override
-  Parser start() => ref(root).end();
+  Parser start() => ref0(root).end();
   Parser token(Parser parser) => parser.flatten().trim();
 
   // Handles <exp> AND <exp> sequences (where AND is optional)
   Parser<Query> root() {
     final g =
-        ref(or) & (ref(rootSep) & ref(or)).map((list) => list.last).star();
+        ref0(or) & (ref0(rootSep) & ref0(or)).map((list) => list.last).star();
     return g.map((list) {
       final children = <Query>[
         list.first as Query,
@@ -27,12 +28,13 @@ class QueryGrammarDefinition extends GrammarDefinition {
     });
   }
 
-  Parser rootSep() => (ref(EXP_SEP) & string('AND')).optional() & ref(EXP_SEP);
+  Parser rootSep() =>
+      (ref0(EXP_SEP) & string('AND')).optional() & ref0(EXP_SEP);
 
   // Handles <exp> OR <exp> sequences.
   Parser<Query> or() {
-    final g = (ref(scopedExpression) | ref(group)) &
-        ((string(' | ') | string(' OR ')) & ref(root))
+    final g = (ref0(scopedExpression) | ref0(group)) &
+        ((string(' | ') | string(' OR ')) & ref0(root))
             .map((list) => list.last)
             .star();
     return g.map((list) {
@@ -54,7 +56,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser<Query> scopedExpression() {
     final g =
         (anyCharExcept(':') & char(':')).optional().map((list) => list?.first) &
-            ref(exclusion);
+            ref0(exclusion);
     return g.map((list) => list.first == null
         ? list.last as Query
         : FieldScope(list.first as String, list.last as Query));
@@ -62,40 +64,40 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   // Handles -<exp>
   Parser<Query> exclusion() {
-    final g = (char('-') | (string('NOT') & ref(EXP_SEP))).optional() &
-        ref(expression);
+    final g = (char('-') | (string('NOT') & ref0(EXP_SEP))).optional() &
+        ref0(expression);
     return g.map((list) =>
         list.first == null ? list.last as Query : NotQuery(list.last as Query));
   }
 
   Parser expression() =>
-      ref(group) | ref(exact) | ref(range) | ref(comparison) | ref(WORD);
+      ref0(group) | ref0(exact) | ref0(range) | ref0(comparison) | ref0(WORD);
 
   Parser group() => (char('(') &
-          ref(EXP_SEP).star() &
-          ref(root).optional() &
-          ref(EXP_SEP).star() &
+          ref0(EXP_SEP).star() &
+          ref0(root).optional() &
+          ref0(EXP_SEP).star() &
           char(')'))
       .map((list) => list[2] == null
           ? GroupQuery(TextQuery(''))
           : GroupQuery(list[2] as Query));
 
   Parser comparison() {
-    final g = ref(IDENTIFIER) &
-        ref(EXP_SEP).optional() &
-        ref(COMP_OPERATOR) &
-        ref(EXP_SEP).optional() &
-        ref(wordOrExact);
+    final g = ref0(IDENTIFIER) &
+        ref0(EXP_SEP).optional() &
+        ref0(COMP_OPERATOR) &
+        ref0(EXP_SEP).optional() &
+        ref0(wordOrExact);
     return g.map((list) => FieldCompareQuery(
         list[0] as String, list[2] as String, list[4] as TextQuery));
   }
 
   Parser range() {
-    final g = ref(rangeSep) &
-        ref(wordOrExact) &
+    final g = ref0(rangeSep) &
+        ref0(wordOrExact) &
         string(' TO ') &
-        ref(wordOrExact) &
-        ref(rangeSep);
+        ref0(wordOrExact) &
+        ref0(rangeSep);
     return g.map((list) {
       return RangeQuery(list[1] as TextQuery, list[3] as TextQuery,
           startInclusive: list[0] == '[', endInclusive: list[4] == ']');
@@ -104,12 +106,12 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser rangeSep() => char('[') | char(']');
 
-  Parser wordOrExact() => ref(exact) | ref(WORD);
+  Parser wordOrExact() => ref0(exact) | ref0(WORD);
 
   Parser exact() {
     final g = char('"') &
-        ref(EXP_SEP).star() &
-        (pattern('^" \t\n\r').plus() & ref(EXP_SEP).star()).star() &
+        ref0(EXP_SEP).star() &
+        (pattern('^" \t\n\r').plus() & ref0(EXP_SEP).star()).star() &
         char('"');
     return g.map((list) {
       final children = <TextQuery>[];

@@ -1,3 +1,8 @@
+## 1.5.0
+
+- Migrated to new `petitparser` API (`ref`).
+- Deprecated non-public API `QueryParser`, use `QueryGrammarDefinition.build` instead.
+
 ## 1.4.0
 
 - Migrated to null safety.
