@@ -38,6 +38,7 @@ void main() {
       expect(debugQuery('a:"abc"'), 'a:"<abc>"');
       expect(debugQuery('a:"abc 1"'), 'a:"<abc> <1>"');
       expect(debugQuery('a:-"abc 1"'), 'a:-"<abc> <1>"');
+      expect(debugQuery('NOT field:abc'), '-field:<abc>');
     });
 
     test('special scoped', () {
@@ -148,6 +149,11 @@ void main() {
       expect(debugQuery('(a OR -b) c'), '(((<a> OR -<b>)) <c>)');
       expect(debugQuery('-(-(a OR -b) -c) | -(d)'),
           '(-((-((<a> OR -<b>)) -<c>)) OR -(<d>))');
+    });
+    test('scoped grouping', () {
+      expect(debugQuery('(field:abc)'), '(field:<abc>)');
+      expect(debugQuery('(field:abc AND field:def)'), '((field:<abc> field:<def>))');
+      expect(debugQuery('(field:abc OR field:def)'), '((field:<abc> OR field:<def>))');
     });
   });
 
