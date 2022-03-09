@@ -33,7 +33,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   // Handles <exp> OR <exp> sequences.
   Parser<Query> or() {
-    final g = (ref0(group) | ref0(scopedExpression)) &
+    final g = (ref0(group) | ref0(scopedExclusion)) &
         ((string(' | ') | string(' OR ')) & ref0(root))
             .map((list) => list.last)
             .star();
@@ -52,6 +52,8 @@ class QueryGrammarDefinition extends GrammarDefinition {
     });
   }
 
+  Parser exclusionSep() => (char('-') | (string('NOT') & ref0(EXP_SEP))).optional();
+
   // Handles scope:<exp>
   Parser<Query> scopedExpression() {
     final g =
@@ -62,10 +64,16 @@ class QueryGrammarDefinition extends GrammarDefinition {
         : FieldScope(list.first as String, list.last as Query));
   }
 
+  // Handles -scope:<exp>
+  Parser<Query> scopedExclusion() {
+    final g = exclusionSep() & ref0(scopedExpression);
+    return g.map((list) =>
+        list.first == null ? list.last as Query : NotQuery(list.last as Query));
+  }
+
   // Handles -<exp>
   Parser<Query> exclusion() {
-    final g = (char('-') | (string('NOT') & ref0(EXP_SEP))).optional() &
-        ref0(expression);
+    final g = exclusionSep() & ref0(expression);
     return g.map((list) =>
         list.first == null ? list.last as Query : NotQuery(list.last as Query));
   }

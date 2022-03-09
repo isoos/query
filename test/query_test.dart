@@ -38,6 +38,7 @@ void main() {
       expect(debugQuery('a:"abc"'), 'a:"<abc>"');
       expect(debugQuery('a:"abc 1"'), 'a:"<abc> <1>"');
       expect(debugQuery('a:-"abc 1"'), 'a:-"<abc> <1>"');
+      expect(debugQuery('NOT field:abc'), '-field:<abc>');
     });
 
     test('special scoped', () {
