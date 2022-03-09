@@ -52,8 +52,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
     });
   }
 
-  Parser exclusionSep() =>
-      (char('-') | (string('NOT') & ref0(EXP_SEP))).optional();
+  Parser exclusionSep() => char('-') | (string('NOT') & ref0(EXP_SEP));
 
   // Handles scope:<exp>
   Parser<Query> scopedExpression() {
@@ -67,14 +66,14 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   // Handles -scope:<exp>
   Parser<Query> scopedExclusion() {
-    final g = exclusionSep() & ref0(scopedExpression);
+    final g = exclusionSep().optional() & ref0(scopedExpression);
     return g.map((list) =>
         list.first == null ? list.last as Query : NotQuery(list.last as Query));
   }
 
   // Handles -<exp>
   Parser<Query> exclusion() {
-    final g = exclusionSep() & ref0(expression);
+    final g = exclusionSep().optional() & ref0(expression);
     return g.map((list) =>
         list.first == null ? list.last as Query : NotQuery(list.last as Query));
   }

@@ -2,6 +2,7 @@
 
 - Migrated to new `petitparser` API (`ref`).
 - Deprecated non-public API `QueryParser`, use `QueryGrammarDefinition.build` instead.
+- Fixed grammar issues [#6](https://github.com/isoos/query/pull/6) by [North101](https://github.com/North101).
 
 ## 1.4.0
 
