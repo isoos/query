@@ -52,7 +52,8 @@ class QueryGrammarDefinition extends GrammarDefinition {
     });
   }
 
-  Parser exclusionSep() => (char('-') | (string('NOT') & ref0(EXP_SEP))).optional();
+  Parser exclusionSep() =>
+      (char('-') | (string('NOT') & ref0(EXP_SEP))).optional();
 
   // Handles scope:<exp>
   Parser<Query> scopedExpression() {

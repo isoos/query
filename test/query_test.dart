@@ -152,8 +152,10 @@ void main() {
     });
     test('scoped grouping', () {
       expect(debugQuery('(field:abc)'), '(field:<abc>)');
-      expect(debugQuery('(field:abc AND field:def)'), '((field:<abc> field:<def>))');
-      expect(debugQuery('(field:abc OR field:def)'), '((field:<abc> OR field:<def>))');
+      expect(debugQuery('(field:abc AND field:def)'),
+          '((field:<abc> field:<def>))');
+      expect(debugQuery('(field:abc OR field:def)'),
+          '((field:<abc> OR field:<def>))');
     });
   });
 
