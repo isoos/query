@@ -1,3 +1,7 @@
+## 1.6.0
+
+- Upgraded `petitparser` to `5.0.0`.
+
 ## 1.5.0
 
 - Migrated to new `petitparser` API (`ref`).
