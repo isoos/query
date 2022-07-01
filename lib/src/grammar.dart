@@ -18,13 +18,13 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser<Query> root() {
     final g =
         ref0(or) & (ref0(rootSep) & ref0(or)).map((list) => list.last).star();
-    return g.map((list) {
+    return g.token().map((list) {
       final children = <Query>[
-        list.first as Query,
-        ...(list.last as List).cast<Query>(),
+        list.value.first as Query,
+        ...(list.value.last as List).cast<Query>(),
       ];
       if (children.length == 1) return children.single;
-      return AndQuery(children);
+      return AndQuery(children, list.start, list.stop);
     });
   }
 
@@ -37,10 +37,10 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ((string(' | ') | string(' OR ')) & ref0(root))
             .map((list) => list.last)
             .star();
-    return g.map((list) {
+    return g.token().map((list) {
       final children = <Query>[
-        list.first as Query,
-        ...(list.last as List).cast<Query>(),
+        list.value.first as Query,
+        ...(list.value.last as List).cast<Query>(),
       ];
       if (children.length == 1) return children.single;
       final second = children.last;
@@ -48,7 +48,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
         second.children.insert(0, children.first);
         return second;
       }
-      return OrQuery(children);
+      return OrQuery(children, list.start, list.stop);
     });
   }
 
@@ -59,36 +59,44 @@ class QueryGrammarDefinition extends GrammarDefinition {
     final g =
         (anyCharExcept(':') & char(':')).optional().map((list) => list?.first) &
             ref0(exclusion);
-    return g.map((list) => list.first == null
-        ? list.last as Query
-        : FieldScope(list.first as String, list.last as Query));
+    return g.token().map((list) => list.value.first == null
+        ? list.value.last as Query
+        : FieldScope(list.value.first as String, list.value.last as Query,
+            list.start, list.stop));
   }
 
   // Handles -scope:<exp>
   Parser<Query> scopedExclusion() {
     final g = exclusionSep().optional() & ref0(scopedExpression);
-    return g.map((list) =>
-        list.first == null ? list.last as Query : NotQuery(list.last as Query));
+    return g.token().map((list) => list.value.first == null
+        ? list.value.last as Query
+        : NotQuery(list.value.last as Query, list.start, list.stop));
   }
 
   // Handles -<exp>
   Parser<Query> exclusion() {
     final g = exclusionSep().optional() & ref0(expression);
-    return g.map((list) =>
-        list.first == null ? list.last as Query : NotQuery(list.last as Query));
+    return g.token().map((list) => list.value.first == null
+        ? list.value.last as Query
+        : NotQuery(list.value.last as Query, list.start, list.stop));
   }
 
   Parser expression() =>
       ref0(group) | ref0(exact) | ref0(range) | ref0(comparison) | ref0(WORD);
 
-  Parser group() => (char('(') &
-          ref0(EXP_SEP).star() &
-          ref0(root).optional() &
-          ref0(EXP_SEP).star() &
-          char(')'))
-      .map((list) => list[2] == null
-          ? GroupQuery(TextQuery(''))
-          : GroupQuery(list[2] as Query));
+  Parser group() {
+    final g = char('(') &
+        ref0(EXP_SEP).star() &
+        ref0(root)
+            .optional()
+            .token()
+            .map((str) => str.value ?? TextQuery('', str.start, str.stop)) &
+        ref0(EXP_SEP).star() &
+        char(')');
+    return g.token().map((list) {
+      return GroupQuery(list.value[2] as Query, list.start, list.stop);
+    });
+  }
 
   Parser comparison() {
     final g = ref0(IDENTIFIER) &
@@ -96,8 +104,12 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ref0(COMP_OPERATOR) &
         ref0(EXP_SEP).optional() &
         ref0(wordOrExact);
-    return g.map((list) => FieldCompareQuery(
-        list[0] as String, list[2] as String, list[4] as TextQuery));
+    return g.token().map((list) => FieldCompareQuery(
+        list.value[0] as String,
+        list.value[2] as String,
+        list.value[4] as TextQuery,
+        list.start,
+        list.stop));
   }
 
   Parser range() {
@@ -106,9 +118,14 @@ class QueryGrammarDefinition extends GrammarDefinition {
         string(' TO ') &
         ref0(wordOrExact) &
         ref0(rangeSep);
-    return g.map((list) {
-      return RangeQuery(list[1] as TextQuery, list[3] as TextQuery,
-          startInclusive: list[0] == '[', endInclusive: list[4] == ']');
+    return g.token().map((list) {
+      return RangeQuery(
+          list.value[1] as TextQuery,
+          list.value[3] as TextQuery,
+          startInclusive: list.value[0] == '[',
+          endInclusive: list.value[4] == ']',
+          list.start,
+          list.stop);
     });
   }
 
@@ -116,21 +133,26 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser wordOrExact() => ref0(exact) | ref0(WORD);
 
+  Parser exactWord() => pattern('^" \t\n\r')
+      .plus()
+      .token()
+      .map((str) => TextQuery(str.value.join(), str.start, str.stop));
+
   Parser exact() {
     final g = char('"') &
         ref0(EXP_SEP).star() &
-        (pattern('^" \t\n\r').plus() & ref0(EXP_SEP).star()).star() &
+        (ref0(exactWord) & ref0(EXP_SEP).star()).star() &
         char('"');
-    return g.map((list) {
+    return g.token().map((list) {
       final children = <TextQuery>[];
-      var phrase = list[1].join() as String;
-      for (var w in list[2]) {
-        var word = w.first.join() as String;
-        var sep = w[1].join() as String;
-        phrase += '$word$sep';
-        children.add(TextQuery(word));
+      var phrase = list.value[1].join() as String;
+      for (var w in list.value[2]) {
+        final word = w.first as TextQuery;
+        final sep = w[1].join() as String;
+        children.add(word);
+        phrase += '${word.text}$sep';
       }
-      return PhraseQuery(phrase, children);
+      return PhraseQuery(phrase, children, list.start, list.stop);
     });
   }
 
@@ -140,7 +162,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser WORD() {
     final g = allowedChars().plus().map((list) => list.join());
-    return g.map((str) => TextQuery(str));
+    return g.token().map((str) => TextQuery(str.value, str.start, str.stop));
   }
 
   Parser<String> IDENTIFIER() =>

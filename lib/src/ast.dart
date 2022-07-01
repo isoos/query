@@ -1,5 +1,13 @@
 /// Base interface for queries.
 abstract class Query {
+  const Query(this.tokenStart, this.tokenEnd);
+
+  /// The start position of the token from the input.
+  final int tokenStart;
+
+  /// The end position of the token from the input.
+  final int tokenEnd;
+
   /// Returns a String-representation of this [Query].
   ///
   /// Implementation should aim to provide a format that can be parsed to the
@@ -14,10 +22,11 @@ abstract class Query {
 /// Text query to match [text].
 ///
 /// [isExactMatch] is set when the [text] was inside quotes.
-class TextQuery implements Query {
+class TextQuery extends Query {
   final String text;
   final bool isExactMatch;
-  TextQuery(this.text, {this.isExactMatch = false});
+  const TextQuery(this.text, super.tokenStart, super.tokenStop,
+      {this.isExactMatch = false});
 
   @override
   String toString({bool debug = false}) =>
@@ -27,7 +36,9 @@ class TextQuery implements Query {
 /// Phrase query to match "[text]" for a list of words inside quotes.
 class PhraseQuery extends TextQuery {
   final List<TextQuery> children;
-  PhraseQuery(String phrase, this.children) : super(phrase, isExactMatch: true);
+  const PhraseQuery(
+      super.phrase, this.children, super.tokenStart, super.tokenStop)
+      : super(isExactMatch: true);
 
   @override
   String toString({bool debug = false}) =>
@@ -35,11 +46,11 @@ class PhraseQuery extends TextQuery {
 }
 
 /// Scopes [child] [Query] to be applied only on the [field].
-class FieldScope implements Query {
+class FieldScope extends Query {
   final String field;
   final Query child;
 
-  FieldScope(this.field, this.child);
+  const FieldScope(this.field, this.child, super.tokenStart, super.tokenStop);
 
   @override
   String toString({bool debug = false}) =>
@@ -47,12 +58,13 @@ class FieldScope implements Query {
 }
 
 /// Describes a [field] [operator] [text] tripled (e.g. year < 2000).
-class FieldCompareQuery implements Query {
+class FieldCompareQuery extends Query {
   final String field;
   final String operator;
   final TextQuery text;
 
-  FieldCompareQuery(this.field, this.operator, this.text);
+  const FieldCompareQuery(
+      this.field, this.operator, this.text, super.tokenStart, super.tokenStop);
 
   @override
   String toString({bool debug = false}) =>
@@ -60,13 +72,13 @@ class FieldCompareQuery implements Query {
 }
 
 /// Describes a range query between [start] and [end].
-class RangeQuery implements Query {
+class RangeQuery extends Query {
   final TextQuery start;
   final bool startInclusive;
   final TextQuery end;
   final bool endInclusive;
 
-  RangeQuery(this.start, this.end,
+  const RangeQuery(this.start, this.end, super.tokenStart, super.tokenStop,
       {this.startInclusive = true, this.endInclusive = true});
 
   @override
@@ -81,28 +93,28 @@ class RangeQuery implements Query {
 }
 
 /// Negates the [child] query. (bool NOT)
-class NotQuery implements Query {
+class NotQuery extends Query {
   final Query child;
-  NotQuery(this.child);
+  const NotQuery(this.child, super.tokenStart, super.tokenStop);
 
   @override
   String toString({bool debug = false}) => '-${child.toString(debug: debug)}';
 }
 
 /// Groups the [child] query to override implicit precedence.
-class GroupQuery implements Query {
+class GroupQuery extends Query {
   final Query child;
-  GroupQuery(this.child);
+  const GroupQuery(this.child, super.tokenStart, super.tokenStop);
 
   @override
   String toString({bool debug = false}) => '(${child.toString(debug: debug)})';
 }
 
 /// Bool AND composition of [children] queries.
-class AndQuery implements Query {
+class AndQuery extends Query {
   final List<Query> children;
 
-  AndQuery(this.children);
+  const AndQuery(this.children, super.tokenStart, super.tokenStop);
 
   @override
   String toString({bool debug = false}) =>
@@ -110,10 +122,10 @@ class AndQuery implements Query {
 }
 
 /// Bool OR composition of [children] queries.
-class OrQuery implements Query {
+class OrQuery extends Query {
   final List<Query> children;
 
-  OrQuery(this.children);
+  const OrQuery(this.children, super.tokenStart, super.tokenStop);
 
   @override
   String toString({bool debug = false}) =>
