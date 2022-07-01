@@ -135,20 +135,21 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser exactWord() => pattern('^" \t\n\r')
       .plus()
+      .flatten()
       .token()
-      .map((str) => TextQuery(str.value.join(), str.start, str.stop));
+      .map((str) => TextQuery(str.value, str.start, str.stop));
 
   Parser exact() {
     final g = char('"') &
-        ref0(EXP_SEP).star() &
-        (ref0(exactWord) & ref0(EXP_SEP).star()).star() &
+        ref0(EXP_SEP).star().flatten() &
+        (ref0(exactWord) & ref0(EXP_SEP).star().flatten()).star() &
         char('"');
     return g.token().map((list) {
       final children = <TextQuery>[];
-      var phrase = list.value[1].join() as String;
+      var phrase = list.value[1] as String;
       for (var w in list.value[2]) {
         final word = w.first as TextQuery;
-        final sep = w[1].join() as String;
+        final sep = w[1] as String;
         children.add(word);
         phrase += '${word.text}$sep';
       }
@@ -160,13 +161,13 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser<String> WORD_SEP() => whitespace().plus().map((_) => ' ');
 
-  Parser WORD() {
-    final g = allowedChars().plus().map((list) => list.join());
-    return g.token().map((str) => TextQuery(str.value, str.start, str.stop));
-  }
+  Parser WORD() => allowedChars()
+      .plus()
+      .flatten()
+      .token()
+      .map((str) => TextQuery(str.value, str.start, str.stop));
 
-  Parser<String> IDENTIFIER() =>
-      allowedChars().plus().map((list) => list.join());
+  Parser<String> IDENTIFIER() => allowedChars().plus().flatten();
 
   Parser COMP_OPERATOR() =>
       string('<=') |
@@ -205,7 +206,7 @@ Parser<String> anyCharExcept(String except,
     [String message = 'letter or digit expected']) {
   return CharacterParser(AnyCharExceptPredicate(except.codeUnits), message)
       .plus()
-      .map((list) => list.join());
+      .flatten();
 }
 
 class AnyCharExceptPredicate implements CharacterPredicate {
