@@ -33,7 +33,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   // Handles <exp> OR <exp> sequences.
   Parser<Query> or() {
-    final g = (ref0(group) | ref0(scopedExclusion)) &
+    final g = (ref0(group) | ref0(scopedExclusion) | ref0(exclusion)) &
         ((string(' | ') | string(' OR ')) & ref0(root))
             .map((list) => list.last)
             .star();
@@ -56,9 +56,11 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   // Handles scope:<exp>
   Parser<Query> scopedExpression() {
-    final g =
-        (anyCharExcept(':') & char(':')).optional().map((list) => list?.first) &
-            ref0(exclusion);
+    final g = (anyCharExcept(':') & char(':')).map((list) => list.first) &
+        ref0(exclusion)
+            .optional()
+            .token()
+            .map((str) => str.value ?? TextQuery('', str.start, str.stop));
     return g.token().map((list) => list.value.first == null
         ? list.value.last as Query
         : FieldScope(list.value.first as String, list.value.last as Query,
@@ -103,7 +105,10 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ref0(EXP_SEP).optional() &
         ref0(COMP_OPERATOR) &
         ref0(EXP_SEP).optional() &
-        ref0(wordOrExact);
+        ref0(wordOrExact)
+            .optional()
+            .token()
+            .map((str) => str.value ?? TextQuery('', str.start, str.stop));
     return g.token().map((list) => FieldCompareQuery(
         list.value[0] as String,
         list.value[2] as String,
