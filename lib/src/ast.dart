@@ -1,12 +1,12 @@
 /// Base interface for queries.
 abstract class Query {
-  const Query(this.tokenStart, this.tokenEnd);
+  const Query(this.startIndex, this.endIndex);
 
-  /// The start position of the token from the input.
-  final int tokenStart;
+  /// The start index of the token from the input.
+  final int startIndex;
 
-  /// The end position of the token from the input.
-  final int tokenEnd;
+  /// The end index of the token from the input.
+  final int endIndex;
 
   /// Returns a String-representation of this [Query].
   ///
@@ -25,7 +25,7 @@ abstract class Query {
 class TextQuery extends Query {
   final String text;
   final bool isExactMatch;
-  const TextQuery(this.text, super.tokenStart, super.tokenStop,
+  const TextQuery(this.text, super.startIndex, super.endIndex,
       {this.isExactMatch = false});
 
   @override
@@ -37,7 +37,7 @@ class TextQuery extends Query {
 class PhraseQuery extends TextQuery {
   final List<TextQuery> children;
   const PhraseQuery(
-      super.phrase, this.children, super.tokenStart, super.tokenStop)
+      super.phrase, this.children, super.startIndex, super.endIndex)
       : super(isExactMatch: true);
 
   @override
@@ -50,7 +50,7 @@ class FieldScope extends Query {
   final String field;
   final Query child;
 
-  const FieldScope(this.field, this.child, super.tokenStart, super.tokenStop);
+  const FieldScope(this.field, this.child, super.startIndex, super.endIndex);
 
   @override
   String toString({bool debug = false}) =>
@@ -64,7 +64,7 @@ class FieldCompareQuery extends Query {
   final TextQuery text;
 
   const FieldCompareQuery(
-      this.field, this.operator, this.text, super.tokenStart, super.tokenStop);
+      this.field, this.operator, this.text, super.startIndex, super.endIndex);
 
   @override
   String toString({bool debug = false}) =>
@@ -78,7 +78,7 @@ class RangeQuery extends Query {
   final TextQuery end;
   final bool endInclusive;
 
-  const RangeQuery(this.start, this.end, super.tokenStart, super.tokenStop,
+  const RangeQuery(this.start, this.end, super.startIndex, super.endIndex,
       {this.startInclusive = true, this.endInclusive = true});
 
   @override
@@ -95,7 +95,7 @@ class RangeQuery extends Query {
 /// Negates the [child] query. (bool NOT)
 class NotQuery extends Query {
   final Query child;
-  const NotQuery(this.child, super.tokenStart, super.tokenStop);
+  const NotQuery(this.child, super.startIndex, super.endIndex);
 
   @override
   String toString({bool debug = false}) => '-${child.toString(debug: debug)}';
@@ -104,7 +104,7 @@ class NotQuery extends Query {
 /// Groups the [child] query to override implicit precedence.
 class GroupQuery extends Query {
   final Query child;
-  const GroupQuery(this.child, super.tokenStart, super.tokenStop);
+  const GroupQuery(this.child, super.startIndex, super.endIndex);
 
   @override
   String toString({bool debug = false}) => '(${child.toString(debug: debug)})';
@@ -114,7 +114,7 @@ class GroupQuery extends Query {
 class AndQuery extends Query {
   final List<Query> children;
 
-  const AndQuery(this.children, super.tokenStart, super.tokenStop);
+  const AndQuery(this.children, super.startIndex, super.endIndex);
 
   @override
   String toString({bool debug = false}) =>
@@ -125,7 +125,7 @@ class AndQuery extends Query {
 class OrQuery extends Query {
   final List<Query> children;
 
-  const OrQuery(this.children, super.tokenStart, super.tokenStop);
+  const OrQuery(this.children, super.startIndex, super.endIndex);
 
   @override
   String toString({bool debug = false}) =>
