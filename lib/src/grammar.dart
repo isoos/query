@@ -56,14 +56,18 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   // Handles scope:<exp>
   Parser<Query> scopedExpression() {
-    final g = (anyCharExcept(':') & char(':')).map((list) => list.first) &
+    final g = (anyCharExcept(':')
+                .flatten()
+                .token()
+                .map((str) => TextQuery(str.value, str.start, str.stop)) &
+            char(':')) &
         ref0(exclusion)
             .optional()
             .token()
             .map((str) => str.value ?? TextQuery('', str.start, str.stop));
     return g.token().map((list) => list.value.first == null
         ? list.value.last as Query
-        : FieldScope(list.value.first as String, list.value.last as Query,
+        : FieldScope(list.value.first as TextQuery, list.value.last as Query,
             list.start, list.stop));
   }
 
@@ -101,17 +105,21 @@ class QueryGrammarDefinition extends GrammarDefinition {
   }
 
   Parser comparison() {
-    final g = ref0(IDENTIFIER) &
+    final g = ref0(IDENTIFIER)
+            .token()
+            .map((str) => TextQuery(str.value, str.start, str.stop)) &
         ref0(EXP_SEP).optional() &
-        ref0(COMP_OPERATOR) &
+        ref0(COMP_OPERATOR)
+            .token()
+            .map((str) => TextQuery(str.value, str.start, str.stop)) &
         ref0(EXP_SEP).optional() &
         ref0(wordOrExact)
             .optional()
             .token()
             .map((str) => str.value ?? TextQuery('', str.start, str.stop));
     return g.token().map((list) => FieldCompareQuery(
-        list.value[0] as String,
-        list.value[2] as String,
+        list.value[0] as TextQuery,
+        list.value[2] as TextQuery,
         list.value[4] as TextQuery,
         list.start,
         list.stop));
@@ -166,7 +174,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser<String> WORD_SEP() => whitespace().plus().map((_) => ' ');
 
-  Parser WORD() => allowedChars()
+  Parser<TextQuery> WORD() => allowedChars()
       .plus()
       .flatten()
       .token()
@@ -174,13 +182,13 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser<String> IDENTIFIER() => allowedChars().plus().flatten();
 
-  Parser COMP_OPERATOR() =>
-      string('<=') |
-      string('<') |
-      string('>=') |
-      string('>') |
-      string('!=') |
-      string('=');
+  Parser<String> COMP_OPERATOR() => (string('<=') |
+          string('<') |
+          string('>=') |
+          string('>') |
+          string('!=') |
+          string('='))
+      .flatten();
 
   Parser<String> allowedChars() => anyCharExcept('[]():<!=>"');
 }

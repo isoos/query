@@ -47,10 +47,13 @@ class PhraseQuery extends TextQuery {
 
 /// Scopes [child] [Query] to be applied only on the [field].
 class FieldScope extends Query {
-  final String field;
+  final TextQuery fieldText;
   final Query child;
 
-  const FieldScope(this.field, this.child, super.startIndex, super.endIndex);
+  const FieldScope(
+      this.fieldText, this.child, super.startIndex, super.endIndex);
+
+  String get field => fieldText.text;
 
   @override
   String toString({bool debug = false}) =>
@@ -59,12 +62,16 @@ class FieldScope extends Query {
 
 /// Describes a [field] [operator] [text] tripled (e.g. year < 2000).
 class FieldCompareQuery extends Query {
-  final String field;
-  final String operator;
+  final TextQuery fieldText;
+  final TextQuery operatorText;
   final TextQuery text;
 
-  const FieldCompareQuery(
-      this.field, this.operator, this.text, super.startIndex, super.endIndex);
+  const FieldCompareQuery(this.fieldText, this.operatorText, this.text,
+      super.startIndex, super.endIndex);
+
+  String get field => fieldText.text;
+
+  String get operator => operatorText.text;
 
   @override
   String toString({bool debug = false}) =>
