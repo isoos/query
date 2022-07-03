@@ -17,6 +17,8 @@ abstract class Query {
   /// testing unambiguous.
   @override
   String toString({bool debug = false});
+
+  R cast<R extends Query>() => this as R;
 }
 
 /// Text query to match [text].
@@ -47,13 +49,10 @@ class PhraseQuery extends TextQuery {
 
 /// Scopes [child] [Query] to be applied only on the [field].
 class FieldScope extends Query {
-  final TextQuery fieldText;
+  final TextQuery field;
   final Query child;
 
-  const FieldScope(
-      this.fieldText, this.child, super.startIndex, super.endIndex);
-
-  String get field => fieldText.text;
+  const FieldScope(this.field, this.child, super.startIndex, super.endIndex);
 
   @override
   String toString({bool debug = false}) =>
@@ -62,16 +61,12 @@ class FieldScope extends Query {
 
 /// Describes a [field] [operator] [text] tripled (e.g. year < 2000).
 class FieldCompareQuery extends Query {
-  final TextQuery fieldText;
-  final TextQuery operatorText;
+  final TextQuery field;
+  final TextQuery operator;
   final TextQuery text;
 
-  const FieldCompareQuery(this.fieldText, this.operatorText, this.text,
-      super.startIndex, super.endIndex);
-
-  String get field => fieldText.text;
-
-  String get operator => operatorText.text;
+  const FieldCompareQuery(
+      this.field, this.operator, this.text, super.startIndex, super.endIndex);
 
   @override
   String toString({bool debug = false}) =>
