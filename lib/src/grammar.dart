@@ -11,7 +11,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
   const QueryGrammarDefinition();
 
   @override
-  Parser start() => ref0(root).end();
+  Parser<Query> start() => ref0(root).end();
   Parser token(Parser parser) => parser.flatten().trim();
 
   // Handles <exp> AND <exp> sequences (where AND is optional)
@@ -56,15 +56,8 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   // Handles scope:<exp>
   Parser<Query> scopedExpression() {
-    final g = (anyCharExcept(':')
-                .flatten()
-                .token()
-                .map((str) => TextQuery(str.value, str.start, str.stop)) &
-            char(':')) &
-        ref0(exclusion)
-            .optional()
-            .token()
-            .map((str) => str.value ?? TextQuery('', str.start, str.stop));
+    final g = (anyCharExcept(':').flatten().textQuery() & char(':')) &
+        ref0(exclusion).orEmptyTextQuery();
     return g.token().map((list) => list.value.first == null
         ? list.value.last as Query
         : FieldScope(list.value.first as TextQuery, list.value.last as Query,
@@ -90,33 +83,22 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser expression() =>
       ref0(group) | ref0(exact) | ref0(range) | ref0(comparison) | ref0(WORD);
 
-  Parser group() {
+  Parser<GroupQuery> group() {
     final g = char('(') &
         ref0(EXP_SEP).star() &
-        ref0(root)
-            .optional()
-            .token()
-            .map((str) => str.value ?? TextQuery('', str.start, str.stop)) &
+        ref0(root).orEmptyTextQuery() &
         ref0(EXP_SEP).star() &
         char(')');
-    return g.token().map((list) {
-      return GroupQuery(list.value[2] as Query, list.start, list.stop);
-    });
+    return g.token().map(
+        (list) => GroupQuery(list.value[2] as Query, list.start, list.stop));
   }
 
-  Parser comparison() {
-    final g = ref0(IDENTIFIER)
-            .token()
-            .map((str) => TextQuery(str.value, str.start, str.stop)) &
+  Parser<FieldCompareQuery> comparison() {
+    final g = ref0(IDENTIFIER).textQuery() &
         ref0(EXP_SEP).optional() &
-        ref0(COMP_OPERATOR)
-            .token()
-            .map((str) => TextQuery(str.value, str.start, str.stop)) &
+        ref0(COMP_OPERATOR).textQuery() &
         ref0(EXP_SEP).optional() &
-        ref0(wordOrExact)
-            .optional()
-            .token()
-            .map((str) => str.value ?? TextQuery('', str.start, str.stop));
+        ref0(wordOrExact).orEmptyTextQuery();
     return g.token().map((list) => FieldCompareQuery(
         list.value[0] as TextQuery,
         list.value[2] as TextQuery,
@@ -125,7 +107,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
         list.stop));
   }
 
-  Parser range() {
+  Parser<RangeQuery> range() {
     final g = ref0(rangeSep) &
         ref0(wordOrExact) &
         string(' TO ') &
@@ -144,15 +126,13 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser rangeSep() => char('[') | char(']');
 
-  Parser wordOrExact() => ref0(exact) | ref0(WORD);
+  Parser<TextQuery> wordOrExact() =>
+      (ref0(exact) | ref0(WORD)).cast<TextQuery>();
 
-  Parser exactWord() => pattern('^" \t\n\r')
-      .plus()
-      .flatten()
-      .token()
-      .map((str) => TextQuery(str.value, str.start, str.stop));
+  Parser<TextQuery> exactWord() =>
+      pattern('^" \t\n\r').plus().flatten().textQuery();
 
-  Parser exact() {
+  Parser<PhraseQuery> exact() {
     final g = char('"') &
         ref0(EXP_SEP).star().flatten() &
         (ref0(exactWord) & ref0(EXP_SEP).star().flatten()).star() &
@@ -174,11 +154,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser<String> WORD_SEP() => whitespace().plus().map((_) => ' ');
 
-  Parser<TextQuery> WORD() => allowedChars()
-      .plus()
-      .flatten()
-      .token()
-      .map((str) => TextQuery(str.value, str.start, str.stop));
+  Parser<TextQuery> WORD() => allowedChars().plus().flatten().textQuery();
 
   Parser<String> IDENTIFIER() => allowedChars().plus().flatten();
 
@@ -234,4 +210,15 @@ class AnyCharExceptPredicate implements CharacterPredicate {
   bool isEqualTo(CharacterPredicate other) {
     return (other is AnyCharExceptPredicate) && identical(this, other);
   }
+}
+
+extension on Parser<String> {
+  Parser<TextQuery> textQuery() =>
+      token().map((str) => TextQuery(str.value, str.start, str.stop));
+}
+
+extension on Parser<Query?> {
+  Parser<Query> orEmptyTextQuery() => optional()
+      .token()
+      .map((value) => value.value ?? TextQuery('', value.start, value.stop));
 }
