@@ -45,8 +45,10 @@ class QueryGrammarDefinition extends GrammarDefinition {
       if (children.length == 1) return children.single;
       final second = children.last;
       if (children.length == 2 && second is OrQuery) {
-        second.children.insert(0, children.first);
-        return second;
+        return OrQuery([
+          children.first,
+          ...second.children,
+        ], list.start, list.stop);
       }
       return OrQuery(children, list.start, list.stop);
     });
