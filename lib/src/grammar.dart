@@ -40,16 +40,14 @@ class QueryGrammarDefinition extends GrammarDefinition {
     return g.token().map((list) {
       final children = <Query>[
         list.value.first as Query,
-        ...(list.value.last as List).cast<Query>(),
+        for (final query in (list.value.last as List).cast<Query>())
+          // flatten OrQuery children
+          if (query is OrQuery)
+            for (final child in query.children) child
+          else
+            query,
       ];
       if (children.length == 1) return children.single;
-      final second = children.last;
-      if (children.length == 2 && second is OrQuery) {
-        return OrQuery([
-          children.first,
-          ...second.children,
-        ], list.start, list.stop);
-      }
       return OrQuery(children, list.start, list.stop);
     });
   }
