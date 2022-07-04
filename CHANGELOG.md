@@ -1,8 +1,8 @@
 ## 2.0.0
 
+- __Breaking__: `FieldScope.field`, `FieldCompareQuery.field` and `FieldCompareQuery.operator` are now a `TextQuery`.
+- __Breaking__: `field:<exp>` and `field <operator> <exp>`: `<exp>` can now be an empty string.
 - Added `startIndex` and `endIndex` to `Query`.
-- `FieldScope.field`, `FieldCompareQuery.field` and `FieldCompareQuery.operator` are now a `TextQuery`.
-- `field:<exp>` and `field <operator> <exp>`: `<exp>` can now be an empty string.
 
 ## 1.6.0
 
