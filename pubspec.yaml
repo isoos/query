@@ -2,7 +2,7 @@ name: query
 description: >
   Search query parser to implement customized search.
   Supports boolean groups, field scopes, ranges, comparisons...
-version: 1.6.0
+version: 2.0.0
 homepage: https://github.com/isoos/query
 
 environment:

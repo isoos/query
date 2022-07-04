@@ -1,3 +1,9 @@
+## 2.0.0
+
+- Added `startIndex` and `endIndex` to `Query`.
+- `FieldScope.field`, `FieldCompareQuery.field` and `FieldCompareQuery.operator` are now a `TextQuery`.
+- `field:<exp>` and `field <operator> <exp>`: `<exp>` can now be an empty string.
+
 ## 1.6.0
 
 - Upgraded `petitparser` to `5.0.0`.
