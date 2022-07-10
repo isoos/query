@@ -1,6 +1,9 @@
 /// Base interface for queries.
 abstract class Query {
-  const Query(this.startIndex, this.endIndex);
+  const Query({
+    required this.startIndex,
+    required this.endIndex,
+  });
 
   /// The start index of the token from the input.
   final int startIndex;
@@ -27,8 +30,12 @@ abstract class Query {
 class TextQuery extends Query {
   final String text;
   final bool isExactMatch;
-  const TextQuery(this.text, super.startIndex, super.endIndex,
-      {this.isExactMatch = false});
+  const TextQuery({
+    required this.text,
+    this.isExactMatch = false,
+    required super.startIndex,
+    required super.endIndex,
+  });
 
   @override
   String toString({bool debug = false}) =>
@@ -38,9 +45,12 @@ class TextQuery extends Query {
 /// Phrase query to match "[text]" for a list of words inside quotes.
 class PhraseQuery extends TextQuery {
   final List<TextQuery> children;
-  const PhraseQuery(
-      super.phrase, this.children, super.startIndex, super.endIndex)
-      : super(isExactMatch: true);
+  const PhraseQuery({
+    required super.text,
+    required this.children,
+    required super.startIndex,
+    required super.endIndex,
+  }) : super(isExactMatch: true);
 
   @override
   String toString({bool debug = false}) =>
@@ -52,7 +62,12 @@ class FieldScope extends Query {
   final TextQuery field;
   final Query child;
 
-  const FieldScope(this.field, this.child, super.startIndex, super.endIndex);
+  const FieldScope({
+    required this.field,
+    required this.child,
+    required super.startIndex,
+    required super.endIndex,
+  });
 
   @override
   String toString({bool debug = false}) =>
@@ -65,8 +80,13 @@ class FieldCompareQuery extends Query {
   final TextQuery operator;
   final TextQuery text;
 
-  const FieldCompareQuery(
-      this.field, this.operator, this.text, super.startIndex, super.endIndex);
+  const FieldCompareQuery({
+    required this.field,
+    required this.operator,
+    required this.text,
+    required super.startIndex,
+    required super.endIndex,
+  });
 
   @override
   String toString({bool debug = false}) =>
@@ -80,8 +100,14 @@ class RangeQuery extends Query {
   final TextQuery end;
   final bool endInclusive;
 
-  const RangeQuery(this.start, this.end, super.startIndex, super.endIndex,
-      {this.startInclusive = true, this.endInclusive = true});
+  const RangeQuery({
+    required this.start,
+    required this.end,
+    required super.startIndex,
+    required super.endIndex,
+    this.startInclusive = true,
+    this.endInclusive = true,
+  });
 
   @override
   String toString({bool debug = false}) => _debug(
@@ -97,7 +123,11 @@ class RangeQuery extends Query {
 /// Negates the [child] query. (bool NOT)
 class NotQuery extends Query {
   final Query child;
-  const NotQuery(this.child, super.startIndex, super.endIndex);
+  const NotQuery({
+    required this.child,
+    required super.startIndex,
+    required super.endIndex,
+  });
 
   @override
   String toString({bool debug = false}) => '-${child.toString(debug: debug)}';
@@ -106,7 +136,11 @@ class NotQuery extends Query {
 /// Groups the [child] query to override implicit precedence.
 class GroupQuery extends Query {
   final Query child;
-  const GroupQuery(this.child, super.startIndex, super.endIndex);
+  const GroupQuery({
+    required this.child,
+    required super.startIndex,
+    required super.endIndex,
+  });
 
   @override
   String toString({bool debug = false}) => '(${child.toString(debug: debug)})';
@@ -116,7 +150,11 @@ class GroupQuery extends Query {
 class AndQuery extends Query {
   final List<Query> children;
 
-  const AndQuery(this.children, super.startIndex, super.endIndex);
+  const AndQuery({
+    required this.children,
+    required super.startIndex,
+    required super.endIndex,
+  });
 
   @override
   String toString({bool debug = false}) =>
@@ -127,7 +165,11 @@ class AndQuery extends Query {
 class OrQuery extends Query {
   final List<Query> children;
 
-  const OrQuery(this.children, super.startIndex, super.endIndex);
+  const OrQuery({
+    required this.children,
+    required super.startIndex,
+    required super.endIndex,
+  });
 
   @override
   String toString({bool debug = false}) =>

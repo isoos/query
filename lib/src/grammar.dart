@@ -24,7 +24,8 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ...(list.value.last as List).cast<Query>(),
       ];
       if (children.length == 1) return children.single;
-      return AndQuery(children, list.start, list.stop);
+      return AndQuery(
+          children: children, startIndex: list.start, endIndex: list.stop);
     });
   }
 
@@ -48,7 +49,8 @@ class QueryGrammarDefinition extends GrammarDefinition {
             query,
       ];
       if (children.length == 1) return children.single;
-      return OrQuery(children, list.start, list.stop);
+      return OrQuery(
+          children: children, startIndex: list.start, endIndex: list.stop);
     });
   }
 
@@ -60,8 +62,11 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ref0(exclusion).orEmptyTextQuery();
     return g.token().map((list) => list.value.first == null
         ? list.value.last as Query
-        : FieldScope(list.value.first as TextQuery, list.value.last as Query,
-            list.start, list.stop));
+        : FieldScope(
+            field: list.value.first as TextQuery,
+            child: list.value.last as Query,
+            startIndex: list.start,
+            endIndex: list.stop));
   }
 
   // Handles -scope:<exp>
@@ -69,7 +74,10 @@ class QueryGrammarDefinition extends GrammarDefinition {
     final g = exclusionSep().optional() & ref0(scopedExpression);
     return g.token().map((list) => list.value.first == null
         ? list.value.last as Query
-        : NotQuery(list.value.last as Query, list.start, list.stop));
+        : NotQuery(
+            child: list.value.last as Query,
+            startIndex: list.start,
+            endIndex: list.stop));
   }
 
   // Handles -<exp>
@@ -77,7 +85,10 @@ class QueryGrammarDefinition extends GrammarDefinition {
     final g = exclusionSep().optional() & ref0(expression);
     return g.token().map((list) => list.value.first == null
         ? list.value.last as Query
-        : NotQuery(list.value.last as Query, list.start, list.stop));
+        : NotQuery(
+            child: list.value.last as Query,
+            startIndex: list.start,
+            endIndex: list.stop));
   }
 
   Parser expression() =>
@@ -89,8 +100,10 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ref0(root).orEmptyTextQuery() &
         ref0(EXP_SEP).star() &
         char(')');
-    return g.token().map(
-        (list) => GroupQuery(list.value[2] as Query, list.start, list.stop));
+    return g.token().map((list) => GroupQuery(
+        child: list.value[2] as Query,
+        startIndex: list.start,
+        endIndex: list.stop));
   }
 
   Parser<FieldCompareQuery> comparison() {
@@ -100,11 +113,11 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ref0(EXP_SEP).optional() &
         ref0(wordOrExact).orEmptyTextQuery();
     return g.token().map((list) => FieldCompareQuery(
-        list.value[0] as TextQuery,
-        list.value[2] as TextQuery,
-        list.value[4] as TextQuery,
-        list.start,
-        list.stop));
+        field: list.value[0] as TextQuery,
+        operator: list.value[2] as TextQuery,
+        text: list.value[4] as TextQuery,
+        startIndex: list.start,
+        endIndex: list.stop));
   }
 
   Parser<RangeQuery> range() {
@@ -115,12 +128,12 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ref0(rangeSep);
     return g.token().map((list) {
       return RangeQuery(
-          list.value[1] as TextQuery,
-          list.value[3] as TextQuery,
+          start: list.value[1] as TextQuery,
+          end: list.value[3] as TextQuery,
           startInclusive: list.value[0] == '[',
           endInclusive: list.value[4] == ']',
-          list.start,
-          list.stop);
+          startIndex: list.start,
+          endIndex: list.stop);
     });
   }
 
@@ -146,7 +159,11 @@ class QueryGrammarDefinition extends GrammarDefinition {
         children.add(word);
         phrase += '${word.text}$sep';
       }
-      return PhraseQuery(phrase, children, list.start, list.stop);
+      return PhraseQuery(
+          text: phrase,
+          children: children,
+          startIndex: list.start,
+          endIndex: list.stop);
     });
   }
 
@@ -213,12 +230,12 @@ class AnyCharExceptPredicate implements CharacterPredicate {
 }
 
 extension on Parser<String> {
-  Parser<TextQuery> textQuery() =>
-      token().map((str) => TextQuery(str.value, str.start, str.stop));
+  Parser<TextQuery> textQuery() => token().map((str) =>
+      TextQuery(text: str.value, startIndex: str.start, endIndex: str.stop));
 }
 
 extension on Parser<Query?> {
-  Parser<Query> orEmptyTextQuery() => optional()
-      .token()
-      .map((value) => value.value ?? TextQuery('', value.start, value.stop));
+  Parser<Query> orEmptyTextQuery() => optional().token().map((value) =>
+      value.value ??
+      TextQuery(text: '', startIndex: value.start, endIndex: value.stop));
 }
