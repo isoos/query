@@ -1,15 +1,25 @@
+/// A class that describes the position of the source text.
+class SourcePosition {
+  const SourcePosition(this.start, this.end);
+
+  /// The start position of this query, exclusive.
+  final int start;
+
+  /// The end position of this query, exclusive.
+  final int end;
+
+  // The length of this query, in characters.
+  int get length => end - start;
+}
+
 /// Base interface for queries.
 abstract class Query {
   const Query({
-    required this.startIndex,
-    required this.endIndex,
+    required this.position,
   });
 
-  /// The start index of the token from the input.
-  final int startIndex;
-
-  /// The end index of the token from the input.
-  final int endIndex;
+  /// The position of this query relative to the source.
+  final SourcePosition position;
 
   /// Returns a String-representation of this [Query].
   ///
@@ -21,6 +31,9 @@ abstract class Query {
   @override
   String toString({bool debug = false});
 
+  /// Returns this [Query] cast as [R]
+  ///
+  /// If the [Query] cannot be cast to [R] it will throw an exception.
   R cast<R extends Query>() => this as R;
 }
 
@@ -33,8 +46,7 @@ class TextQuery extends Query {
   const TextQuery({
     required this.text,
     this.isExactMatch = false,
-    required super.startIndex,
-    required super.endIndex,
+    required super.position,
   });
 
   @override
@@ -48,8 +60,7 @@ class PhraseQuery extends TextQuery {
   const PhraseQuery({
     required super.text,
     required this.children,
-    required super.startIndex,
-    required super.endIndex,
+    required super.position,
   }) : super(isExactMatch: true);
 
   @override
@@ -65,8 +76,7 @@ class FieldScope extends Query {
   const FieldScope({
     required this.field,
     required this.child,
-    required super.startIndex,
-    required super.endIndex,
+    required super.position,
   });
 
   @override
@@ -84,8 +94,7 @@ class FieldCompareQuery extends Query {
     required this.field,
     required this.operator,
     required this.text,
-    required super.startIndex,
-    required super.endIndex,
+    required super.position,
   });
 
   @override
@@ -103,8 +112,7 @@ class RangeQuery extends Query {
   const RangeQuery({
     required this.start,
     required this.end,
-    required super.startIndex,
-    required super.endIndex,
+    required super.position,
     this.startInclusive = true,
     this.endInclusive = true,
   });
@@ -125,8 +133,7 @@ class NotQuery extends Query {
   final Query child;
   const NotQuery({
     required this.child,
-    required super.startIndex,
-    required super.endIndex,
+    required super.position,
   });
 
   @override
@@ -138,8 +145,7 @@ class GroupQuery extends Query {
   final Query child;
   const GroupQuery({
     required this.child,
-    required super.startIndex,
-    required super.endIndex,
+    required super.position,
   });
 
   @override
@@ -152,8 +158,7 @@ class AndQuery extends Query {
 
   const AndQuery({
     required this.children,
-    required super.startIndex,
-    required super.endIndex,
+    required super.position,
   });
 
   @override
@@ -167,8 +172,7 @@ class OrQuery extends Query {
 
   const OrQuery({
     required this.children,
-    required super.startIndex,
-    required super.endIndex,
+    required super.position,
   });
 
   @override

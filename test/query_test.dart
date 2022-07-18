@@ -6,8 +6,8 @@ extension<T extends Query> on T {
   R expect<R extends Query>(String matcher, int start, int end) {
     t.expect(runtimeType, R);
     t.expect(toString(debug: true), matcher);
-    t.expect(startIndex, start);
-    t.expect(endIndex, end);
+    t.expect(position.start, start);
+    t.expect(position.end, end);
     return cast<R>();
   }
 }

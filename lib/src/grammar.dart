@@ -25,7 +25,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
       ];
       if (children.length == 1) return children.single;
       return AndQuery(
-          children: children, startIndex: list.start, endIndex: list.stop);
+          children: children, position: SourcePosition(list.start, list.stop));
     });
   }
 
@@ -50,7 +50,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
       ];
       if (children.length == 1) return children.single;
       return OrQuery(
-          children: children, startIndex: list.start, endIndex: list.stop);
+          children: children, position: SourcePosition(list.start, list.stop));
     });
   }
 
@@ -65,8 +65,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
         : FieldScope(
             field: list.value.first as TextQuery,
             child: list.value.last as Query,
-            startIndex: list.start,
-            endIndex: list.stop));
+            position: SourcePosition(list.start, list.stop)));
   }
 
   // Handles -scope:<exp>
@@ -76,8 +75,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ? list.value.last as Query
         : NotQuery(
             child: list.value.last as Query,
-            startIndex: list.start,
-            endIndex: list.stop));
+            position: SourcePosition(list.start, list.stop)));
   }
 
   // Handles -<exp>
@@ -87,8 +85,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ? list.value.last as Query
         : NotQuery(
             child: list.value.last as Query,
-            startIndex: list.start,
-            endIndex: list.stop));
+            position: SourcePosition(list.start, list.stop)));
   }
 
   Parser expression() =>
@@ -102,8 +99,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
         char(')');
     return g.token().map((list) => GroupQuery(
         child: list.value[2] as Query,
-        startIndex: list.start,
-        endIndex: list.stop));
+        position: SourcePosition(list.start, list.stop)));
   }
 
   Parser<FieldCompareQuery> comparison() {
@@ -116,8 +112,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
         field: list.value[0] as TextQuery,
         operator: list.value[2] as TextQuery,
         text: list.value[4] as TextQuery,
-        startIndex: list.start,
-        endIndex: list.stop));
+        position: SourcePosition(list.start, list.stop)));
   }
 
   Parser<RangeQuery> range() {
@@ -132,8 +127,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
           end: list.value[3] as TextQuery,
           startInclusive: list.value[0] == '[',
           endInclusive: list.value[4] == ']',
-          startIndex: list.start,
-          endIndex: list.stop);
+          position: SourcePosition(list.start, list.stop));
     });
   }
 
@@ -162,8 +156,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
       return PhraseQuery(
           text: phrase,
           children: children,
-          startIndex: list.start,
-          endIndex: list.stop);
+          position: SourcePosition(list.start, list.stop));
     });
   }
 
@@ -230,12 +223,12 @@ class AnyCharExceptPredicate implements CharacterPredicate {
 }
 
 extension on Parser<String> {
-  Parser<TextQuery> textQuery() => token().map((str) =>
-      TextQuery(text: str.value, startIndex: str.start, endIndex: str.stop));
+  Parser<TextQuery> textQuery() => token().map((str) => TextQuery(
+      text: str.value, position: SourcePosition(str.start, str.stop)));
 }
 
 extension on Parser<Query?> {
   Parser<Query> orEmptyTextQuery() => optional().token().map((value) =>
       value.value ??
-      TextQuery(text: '', startIndex: value.start, endIndex: value.stop));
+      TextQuery(text: '', position: SourcePosition(value.start, value.stop)));
 }
