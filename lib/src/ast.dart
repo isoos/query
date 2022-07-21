@@ -38,20 +38,15 @@ abstract class Query {
 }
 
 /// Text query to match [text].
-///
-/// [isExactMatch] is set when the [text] was inside quotes.
 class TextQuery extends Query {
   final String text;
-  final bool isExactMatch;
   const TextQuery({
     required this.text,
-    this.isExactMatch = false,
     required super.position,
   });
 
   @override
-  String toString({bool debug = false}) =>
-      _debug(debug, isExactMatch ? '"$text"' : text);
+  String toString({bool debug = false}) => _debug(debug, text);
 }
 
 /// Phrase query to match "[text]" for a list of words inside quotes.
@@ -61,11 +56,11 @@ class PhraseQuery extends TextQuery {
     required super.text,
     required this.children,
     required super.position,
-  }) : super(isExactMatch: true);
+  });
 
   @override
   String toString({bool debug = false}) =>
-      '"' + children.map((n) => n.toString(debug: debug)).join(' ') + '"';
+      '"${children.map((n) => n.toString(debug: debug)).join(' ')}"';
 }
 
 /// Scopes [child] [Query] to be applied only on the [field].
