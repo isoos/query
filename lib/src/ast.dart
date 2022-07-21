@@ -2,7 +2,7 @@
 class SourcePosition {
   const SourcePosition(this.start, this.end);
 
-  /// The start position of this query, exclusive.
+  /// The start position of this query.
   final int start;
 
   /// The end position of this query, exclusive.
