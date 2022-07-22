@@ -8,6 +8,8 @@
 **Updated**
 - Added `SourcePosition` to `Query`, storing the `start` and `end` index of the matching input.
 
+Thanks to [North101](https://github.com/North101) working on [#9](https://github.com/isoos/query/pull/9) to make this happen!
+
 ## 1.6.0
 
 - Upgraded `petitparser` to `5.0.0`.
