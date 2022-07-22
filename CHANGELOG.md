@@ -1,3 +1,13 @@
+## 2.0.0
+
+**Breaking changes**
+- `FieldScope.field`, `FieldCompareQuery.field` and `FieldCompareQuery.operator` are now a `TextQuery`.
+- `field:<exp>` and `field <operator> <exp>`: `<exp>` can now be an empty string.
+- `TextQuery.isExact` and `PhraseQuery.isExact` are removed. `PhraseQuery` is always exact and `TextQuery` never is.
+
+**Updated**
+- Added `SourcePosition` to `Query`, storing the `start` and `end` index of the matching input.
+
 ## 1.6.0
 
 - Upgraded `petitparser` to `5.0.0`.

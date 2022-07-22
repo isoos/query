@@ -1,5 +1,26 @@
+/// A class that describes the position of the source text.
+class SourcePosition {
+  const SourcePosition(this.start, this.end);
+
+  /// The start position of this query.
+  final int start;
+
+  /// The end position of this query, exclusive.
+  final int end;
+
+  // The length of this query, in characters.
+  int get length => end - start;
+}
+
 /// Base interface for queries.
 abstract class Query {
+  const Query({
+    required this.position,
+  });
+
+  /// The position of this query relative to the source.
+  final SourcePosition position;
+
   /// Returns a String-representation of this [Query].
   ///
   /// Implementation should aim to provide a format that can be parsed to the
@@ -9,37 +30,49 @@ abstract class Query {
   /// testing unambiguous.
   @override
   String toString({bool debug = false});
+
+  /// Returns this [Query] cast as [R]
+  ///
+  /// If the [Query] cannot be cast to [R] it will throw an exception.
+  R cast<R extends Query>() => this as R;
 }
 
 /// Text query to match [text].
-///
-/// [isExactMatch] is set when the [text] was inside quotes.
-class TextQuery implements Query {
+class TextQuery extends Query {
   final String text;
-  final bool isExactMatch;
-  TextQuery(this.text, {this.isExactMatch = false});
+  const TextQuery({
+    required this.text,
+    required super.position,
+  });
 
   @override
-  String toString({bool debug = false}) =>
-      _debug(debug, isExactMatch ? '"$text"' : text);
+  String toString({bool debug = false}) => _debug(debug, text);
 }
 
 /// Phrase query to match "[text]" for a list of words inside quotes.
 class PhraseQuery extends TextQuery {
   final List<TextQuery> children;
-  PhraseQuery(String phrase, this.children) : super(phrase, isExactMatch: true);
+  const PhraseQuery({
+    required super.text,
+    required this.children,
+    required super.position,
+  });
 
   @override
   String toString({bool debug = false}) =>
-      '"' + children.map((n) => n.toString(debug: debug)).join(' ') + '"';
+      '"${children.map((n) => n.toString(debug: debug)).join(' ')}"';
 }
 
 /// Scopes [child] [Query] to be applied only on the [field].
-class FieldScope implements Query {
-  final String field;
+class FieldScope extends Query {
+  final TextQuery field;
   final Query child;
 
-  FieldScope(this.field, this.child);
+  const FieldScope({
+    required this.field,
+    required this.child,
+    required super.position,
+  });
 
   @override
   String toString({bool debug = false}) =>
@@ -47,12 +80,17 @@ class FieldScope implements Query {
 }
 
 /// Describes a [field] [operator] [text] tripled (e.g. year < 2000).
-class FieldCompareQuery implements Query {
-  final String field;
-  final String operator;
+class FieldCompareQuery extends Query {
+  final TextQuery field;
+  final TextQuery operator;
   final TextQuery text;
 
-  FieldCompareQuery(this.field, this.operator, this.text);
+  const FieldCompareQuery({
+    required this.field,
+    required this.operator,
+    required this.text,
+    required super.position,
+  });
 
   @override
   String toString({bool debug = false}) =>
@@ -60,14 +98,19 @@ class FieldCompareQuery implements Query {
 }
 
 /// Describes a range query between [start] and [end].
-class RangeQuery implements Query {
+class RangeQuery extends Query {
   final TextQuery start;
   final bool startInclusive;
   final TextQuery end;
   final bool endInclusive;
 
-  RangeQuery(this.start, this.end,
-      {this.startInclusive = true, this.endInclusive = true});
+  const RangeQuery({
+    required this.start,
+    required this.end,
+    required super.position,
+    this.startInclusive = true,
+    this.endInclusive = true,
+  });
 
   @override
   String toString({bool debug = false}) => _debug(
@@ -81,28 +124,37 @@ class RangeQuery implements Query {
 }
 
 /// Negates the [child] query. (bool NOT)
-class NotQuery implements Query {
+class NotQuery extends Query {
   final Query child;
-  NotQuery(this.child);
+  const NotQuery({
+    required this.child,
+    required super.position,
+  });
 
   @override
   String toString({bool debug = false}) => '-${child.toString(debug: debug)}';
 }
 
 /// Groups the [child] query to override implicit precedence.
-class GroupQuery implements Query {
+class GroupQuery extends Query {
   final Query child;
-  GroupQuery(this.child);
+  const GroupQuery({
+    required this.child,
+    required super.position,
+  });
 
   @override
   String toString({bool debug = false}) => '(${child.toString(debug: debug)})';
 }
 
 /// Bool AND composition of [children] queries.
-class AndQuery implements Query {
+class AndQuery extends Query {
   final List<Query> children;
 
-  AndQuery(this.children);
+  const AndQuery({
+    required this.children,
+    required super.position,
+  });
 
   @override
   String toString({bool debug = false}) =>
@@ -110,10 +162,13 @@ class AndQuery implements Query {
 }
 
 /// Bool OR composition of [children] queries.
-class OrQuery implements Query {
+class OrQuery extends Query {
   final List<Query> children;
 
-  OrQuery(this.children);
+  const OrQuery({
+    required this.children,
+    required super.position,
+  });
 
   @override
   String toString({bool debug = false}) =>

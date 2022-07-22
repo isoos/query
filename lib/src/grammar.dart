@@ -11,20 +11,21 @@ class QueryGrammarDefinition extends GrammarDefinition {
   const QueryGrammarDefinition();
 
   @override
-  Parser start() => ref0(root).end();
+  Parser<Query> start() => ref0(root).end();
   Parser token(Parser parser) => parser.flatten().trim();
 
   // Handles <exp> AND <exp> sequences (where AND is optional)
   Parser<Query> root() {
     final g =
         ref0(or) & (ref0(rootSep) & ref0(or)).map((list) => list.last).star();
-    return g.map((list) {
+    return g.token().map((list) {
       final children = <Query>[
-        list.first as Query,
-        ...(list.last as List).cast<Query>(),
+        list.value.first as Query,
+        ...(list.value.last as List).cast<Query>(),
       ];
       if (children.length == 1) return children.single;
-      return AndQuery(children);
+      return AndQuery(
+          children: children, position: SourcePosition(list.start, list.stop));
     });
   }
 
@@ -33,22 +34,23 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   // Handles <exp> OR <exp> sequences.
   Parser<Query> or() {
-    final g = (ref0(group) | ref0(scopedExclusion)) &
+    final g = (ref0(group) | ref0(scopedExclusion) | ref0(exclusion)) &
         ((string(' | ') | string(' OR ')) & ref0(root))
             .map((list) => list.last)
             .star();
-    return g.map((list) {
+    return g.token().map((list) {
       final children = <Query>[
-        list.first as Query,
-        ...(list.last as List).cast<Query>(),
+        list.value.first as Query,
+        for (final query in (list.value.last as List).cast<Query>())
+          // flatten OrQuery children
+          if (query is OrQuery)
+            for (final child in query.children) child
+          else
+            query,
       ];
       if (children.length == 1) return children.single;
-      final second = children.last;
-      if (children.length == 2 && second is OrQuery) {
-        second.children.insert(0, children.first);
-        return second;
-      }
-      return OrQuery(children);
+      return OrQuery(
+          children: children, position: SourcePosition(list.start, list.stop));
     });
   }
 
@@ -56,81 +58,105 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   // Handles scope:<exp>
   Parser<Query> scopedExpression() {
-    final g =
-        (anyCharExcept(':') & char(':')).optional().map((list) => list?.first) &
-            ref0(exclusion);
-    return g.map((list) => list.first == null
-        ? list.last as Query
-        : FieldScope(list.first as String, list.last as Query));
+    final g = (anyCharExcept(':').flatten().textQuery() & char(':')) &
+        ref0(exclusion).orEmptyTextQuery();
+    return g.token().map((list) => list.value.first == null
+        ? list.value.last as Query
+        : FieldScope(
+            field: list.value.first as TextQuery,
+            child: list.value.last as Query,
+            position: SourcePosition(list.start, list.stop)));
   }
 
   // Handles -scope:<exp>
   Parser<Query> scopedExclusion() {
     final g = exclusionSep().optional() & ref0(scopedExpression);
-    return g.map((list) =>
-        list.first == null ? list.last as Query : NotQuery(list.last as Query));
+    return g.token().map((list) => list.value.first == null
+        ? list.value.last as Query
+        : NotQuery(
+            child: list.value.last as Query,
+            position: SourcePosition(list.start, list.stop)));
   }
 
   // Handles -<exp>
   Parser<Query> exclusion() {
     final g = exclusionSep().optional() & ref0(expression);
-    return g.map((list) =>
-        list.first == null ? list.last as Query : NotQuery(list.last as Query));
+    return g.token().map((list) => list.value.first == null
+        ? list.value.last as Query
+        : NotQuery(
+            child: list.value.last as Query,
+            position: SourcePosition(list.start, list.stop)));
   }
 
   Parser expression() =>
       ref0(group) | ref0(exact) | ref0(range) | ref0(comparison) | ref0(WORD);
 
-  Parser group() => (char('(') &
-          ref0(EXP_SEP).star() &
-          ref0(root).optional() &
-          ref0(EXP_SEP).star() &
-          char(')'))
-      .map((list) => list[2] == null
-          ? GroupQuery(TextQuery(''))
-          : GroupQuery(list[2] as Query));
-
-  Parser comparison() {
-    final g = ref0(IDENTIFIER) &
-        ref0(EXP_SEP).optional() &
-        ref0(COMP_OPERATOR) &
-        ref0(EXP_SEP).optional() &
-        ref0(wordOrExact);
-    return g.map((list) => FieldCompareQuery(
-        list[0] as String, list[2] as String, list[4] as TextQuery));
+  Parser<GroupQuery> group() {
+    final g = char('(') &
+        ref0(EXP_SEP).star() &
+        ref0(root).orEmptyTextQuery() &
+        ref0(EXP_SEP).star() &
+        char(')');
+    return g.token().map((list) => GroupQuery(
+        child: list.value[2] as Query,
+        position: SourcePosition(list.start, list.stop)));
   }
 
-  Parser range() {
+  Parser<FieldCompareQuery> comparison() {
+    final g = ref0(IDENTIFIER).textQuery() &
+        ref0(EXP_SEP).optional() &
+        ref0(COMP_OPERATOR).textQuery() &
+        ref0(EXP_SEP).optional() &
+        ref0(wordOrExact).orEmptyTextQuery();
+    return g.token().map((list) => FieldCompareQuery(
+        field: list.value[0] as TextQuery,
+        operator: list.value[2] as TextQuery,
+        text: list.value[4] as TextQuery,
+        position: SourcePosition(list.start, list.stop)));
+  }
+
+  Parser<RangeQuery> range() {
     final g = ref0(rangeSep) &
         ref0(wordOrExact) &
         string(' TO ') &
         ref0(wordOrExact) &
         ref0(rangeSep);
-    return g.map((list) {
-      return RangeQuery(list[1] as TextQuery, list[3] as TextQuery,
-          startInclusive: list[0] == '[', endInclusive: list[4] == ']');
+    return g.token().map((list) {
+      return RangeQuery(
+          start: list.value[1] as TextQuery,
+          end: list.value[3] as TextQuery,
+          startInclusive: list.value[0] == '[',
+          endInclusive: list.value[4] == ']',
+          position: SourcePosition(list.start, list.stop));
     });
   }
 
   Parser rangeSep() => char('[') | char(']');
 
-  Parser wordOrExact() => ref0(exact) | ref0(WORD);
+  Parser<TextQuery> wordOrExact() =>
+      (ref0(exact) | ref0(WORD)).cast<TextQuery>();
 
-  Parser exact() {
+  Parser<TextQuery> exactWord() =>
+      pattern('^" \t\n\r').plus().flatten().textQuery();
+
+  Parser<PhraseQuery> exact() {
     final g = char('"') &
-        ref0(EXP_SEP).star() &
-        (pattern('^" \t\n\r').plus() & ref0(EXP_SEP).star()).star() &
+        ref0(EXP_SEP).star().flatten() &
+        (ref0(exactWord) & ref0(EXP_SEP).star().flatten()).star() &
         char('"');
-    return g.map((list) {
+    return g.token().map((list) {
       final children = <TextQuery>[];
-      var phrase = list[1].join() as String;
-      for (var w in list[2]) {
-        var word = w.first.join() as String;
-        var sep = w[1].join() as String;
-        phrase += '$word$sep';
-        children.add(TextQuery(word));
+      var phrase = list.value[1] as String;
+      for (var w in list.value[2]) {
+        final word = w.first as TextQuery;
+        final sep = w[1] as String;
+        children.add(word);
+        phrase += '${word.text}$sep';
       }
-      return PhraseQuery(phrase, children);
+      return PhraseQuery(
+          text: phrase,
+          children: children,
+          position: SourcePosition(list.start, list.stop));
     });
   }
 
@@ -138,21 +164,17 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser<String> WORD_SEP() => whitespace().plus().map((_) => ' ');
 
-  Parser WORD() {
-    final g = allowedChars().plus().map((list) => list.join());
-    return g.map((str) => TextQuery(str));
-  }
+  Parser<TextQuery> WORD() => allowedChars().plus().flatten().textQuery();
 
-  Parser<String> IDENTIFIER() =>
-      allowedChars().plus().map((list) => list.join());
+  Parser<String> IDENTIFIER() => allowedChars().plus().flatten();
 
-  Parser COMP_OPERATOR() =>
-      string('<=') |
-      string('<') |
-      string('>=') |
-      string('>') |
-      string('!=') |
-      string('=');
+  Parser<String> COMP_OPERATOR() => (string('<=') |
+          string('<') |
+          string('>=') |
+          string('>') |
+          string('!=') |
+          string('='))
+      .flatten();
 
   Parser<String> allowedChars() => anyCharExcept('[]():<!=>"');
 }
@@ -183,7 +205,7 @@ Parser<String> anyCharExcept(String except,
     [String message = 'letter or digit expected']) {
   return CharacterParser(AnyCharExceptPredicate(except.codeUnits), message)
       .plus()
-      .map((list) => list.join());
+      .flatten();
 }
 
 class AnyCharExceptPredicate implements CharacterPredicate {
@@ -198,4 +220,15 @@ class AnyCharExceptPredicate implements CharacterPredicate {
   bool isEqualTo(CharacterPredicate other) {
     return (other is AnyCharExceptPredicate) && identical(this, other);
   }
+}
+
+extension on Parser<String> {
+  Parser<TextQuery> textQuery() => token().map((str) => TextQuery(
+      text: str.value, position: SourcePosition(str.start, str.stop)));
+}
+
+extension on Parser<Query?> {
+  Parser<Query> orEmptyTextQuery() => optional().token().map((value) =>
+      value.value ??
+      TextQuery(text: '', position: SourcePosition(value.start, value.stop)));
 }
