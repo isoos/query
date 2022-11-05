@@ -12,5 +12,5 @@ dependencies:
   petitparser: ^5.0.0
 
 dev_dependencies:
-  pedantic: ^1.0.0
+  lints: ^2.0.0
   test: ^1.0.0

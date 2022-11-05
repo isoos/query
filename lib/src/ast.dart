@@ -158,7 +158,7 @@ class AndQuery extends Query {
 
   @override
   String toString({bool debug = false}) =>
-      '(' + children.map((n) => n.toString(debug: debug)).join(' ') + ')';
+      '(${children.map((n) => n.toString(debug: debug)).join(' ')})';
 }
 
 /// Bool OR composition of [children] queries.
@@ -172,7 +172,7 @@ class OrQuery extends Query {
 
   @override
   String toString({bool debug = false}) =>
-      '(' + children.map((n) => n.toString(debug: debug)).join(' OR ') + ')';
+      '(${children.map((n) => n.toString(debug: debug)).join(' OR ')})';
 }
 
 String _debug(bool debug, String expr) => debug ? '<$expr>' : expr;
