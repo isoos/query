@@ -2,11 +2,6 @@ import 'package:petitparser/petitparser.dart';
 
 import 'ast.dart';
 
-@Deprecated('Use QueryGrammarDefinition.build instead.')
-class QueryParser extends GrammarParser {
-  QueryParser() : super(const QueryGrammarDefinition());
-}
-
 class QueryGrammarDefinition extends GrammarDefinition {
   const QueryGrammarDefinition();
 
