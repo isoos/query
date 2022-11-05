@@ -59,7 +59,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ref0(exclusion).orEmptyTextQuery();
     return g.token().map((list) => list.value.first == null
         ? list.value.last as Query
-        : FieldScopeQuery(
+        : ScopeQuery(
             field: list.value.first as TextQuery,
             child: list.value.last as Query,
             position: SourcePosition(list.start, list.stop)));
@@ -99,13 +99,13 @@ class QueryGrammarDefinition extends GrammarDefinition {
         position: SourcePosition(list.start, list.stop)));
   }
 
-  Parser<FieldCompareQuery> comparison() {
+  Parser<CompareQuery> comparison() {
     final g = ref0(IDENTIFIER).textQuery() &
         ref0(EXP_SEP).optional() &
         ref0(COMP_OPERATOR).textQuery() &
         ref0(EXP_SEP).optional() &
         ref0(wordOrExact).orEmptyTextQuery();
-    return g.token().map((list) => FieldCompareQuery(
+    return g.token().map((list) => CompareQuery(
         field: list.value[0] as TextQuery,
         operator: list.value[2] as TextQuery,
         text: list.value[4] as TextQuery,

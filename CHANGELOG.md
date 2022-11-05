@@ -1,6 +1,10 @@
-## 2.0.1
+## 2.1.0
 
-- Naming consistency refactor: `FieldScopeQuery` is returned instead of `FieldScope` (kept and deprecated for compatibility for now).
+- Naming consistency refactor:
+  - `ScopeQuery` is returned instead of `FieldScope`.
+  - `CompareQuery` is returned instead of `FieldCompareQuery`.
+  - Old classes are kept in compatibility mode and are deprecated.
+- Added `QueryEvaluator` to help evaluating queries.
 
 ## 2.0.0
 

@@ -69,38 +69,38 @@ void main() {
     });
 
     test('scoped', () {
-      parseQuery('a:abc').expect<FieldScopeQuery>('a:<abc>', 0, 5)
+      parseQuery('a:abc').expect<ScopeQuery>('a:<abc>', 0, 5)
         ..field.expect<TextQuery>('<a>', 0, 1)
         ..child.expect<TextQuery>('<abc>', 2, 5);
-      parseQuery('a:"abc"').expect<FieldScopeQuery>('a:"<abc>"', 0, 7);
-      parseQuery('a:"abc 1"').expect<FieldScopeQuery>('a:"<abc> <1>"', 0, 9);
-      parseQuery('a:-"abc 1"').expect<FieldScopeQuery>('a:-"<abc> <1>"', 0, 10);
+      parseQuery('a:"abc"').expect<ScopeQuery>('a:"<abc>"', 0, 7);
+      parseQuery('a:"abc 1"').expect<ScopeQuery>('a:"<abc> <1>"', 0, 9);
+      parseQuery('a:-"abc 1"').expect<ScopeQuery>('a:-"<abc> <1>"', 0, 10);
       parseQuery('NOT field:abc')
           .expect<NotQuery>('-field:<abc>', 0, 13)
           .child
-          .expect<FieldScopeQuery>('field:<abc>', 4, 13)
+          .expect<ScopeQuery>('field:<abc>', 4, 13)
         ..field.expect<TextQuery>('<field>', 4, 9)
         ..child.expect<TextQuery>('<abc>', 10, 13);
-      parseQuery('a:').expect<FieldScopeQuery>('a:<>', 0, 2);
+      parseQuery('a:').expect<ScopeQuery>('a:<>', 0, 2);
       parseQuery('a: AND a').expect<AndQuery>('(a:<> <a>)', 0, 8);
     });
 
     test('special scoped', () {
-      parseQuery('a*:abc').expect<FieldScopeQuery>('a*:<abc>', 0, 6);
-      parseQuery('a%:"abc"').expect<FieldScopeQuery>('a%:"<abc>"', 0, 8);
+      parseQuery('a*:abc').expect<ScopeQuery>('a*:<abc>', 0, 6);
+      parseQuery('a%:"abc"').expect<ScopeQuery>('a%:"<abc>"', 0, 8);
     });
 
     test('compare', () {
-      parseQuery('year < 2000').expect<FieldCompareQuery>('<year<2000>', 0, 11)
+      parseQuery('year < 2000').expect<CompareQuery>('<year<2000>', 0, 11)
         ..field.expect<TextQuery>('<year>', 0, 4)
         ..operator.expect<TextQuery>('<<>', 5, 6)
         ..text.expect<TextQuery>('<2000>', 7, 11);
       parseQuery('field >= "test case"')
-          .expect<FieldCompareQuery>('<field>="test case">', 0, 20)
+          .expect<CompareQuery>('<field>="test case">', 0, 20)
         ..field.expect<TextQuery>('<field>', 0, 5)
         ..operator.expect<TextQuery>('<>=>', 6, 8)
         ..text.expect<PhraseQuery>('"<test> <case>"', 9, 20);
-      parseQuery('year = ').expect<FieldCompareQuery>('<year=>', 0, 7);
+      parseQuery('year = ').expect<CompareQuery>('<year=>', 0, 7);
     });
 
     test('range', () {
