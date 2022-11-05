@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:petitparser/petitparser.dart';
 
 import 'ast.dart';
@@ -57,7 +59,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
         ref0(exclusion).orEmptyTextQuery();
     return g.token().map((list) => list.value.first == null
         ? list.value.last as Query
-        : FieldScope(
+        : FieldScopeQuery(
             field: list.value.first as TextQuery,
             child: list.value.last as Query,
             position: SourcePosition(list.start, list.stop)));

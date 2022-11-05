@@ -1,3 +1,7 @@
+## 2.0.1
+
+- Naming consistency refactor: `FieldScopeQuery` is returned instead of `FieldScope` (kept and deprecated for compatibility for now).
+
 ## 2.0.0
 
 **Breaking changes**

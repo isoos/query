@@ -69,25 +69,25 @@ void main() {
     });
 
     test('scoped', () {
-      parseQuery('a:abc').expect<FieldScope>('a:<abc>', 0, 5)
+      parseQuery('a:abc').expect<FieldScopeQuery>('a:<abc>', 0, 5)
         ..field.expect<TextQuery>('<a>', 0, 1)
         ..child.expect<TextQuery>('<abc>', 2, 5);
-      parseQuery('a:"abc"').expect<FieldScope>('a:"<abc>"', 0, 7);
-      parseQuery('a:"abc 1"').expect<FieldScope>('a:"<abc> <1>"', 0, 9);
-      parseQuery('a:-"abc 1"').expect<FieldScope>('a:-"<abc> <1>"', 0, 10);
+      parseQuery('a:"abc"').expect<FieldScopeQuery>('a:"<abc>"', 0, 7);
+      parseQuery('a:"abc 1"').expect<FieldScopeQuery>('a:"<abc> <1>"', 0, 9);
+      parseQuery('a:-"abc 1"').expect<FieldScopeQuery>('a:-"<abc> <1>"', 0, 10);
       parseQuery('NOT field:abc')
           .expect<NotQuery>('-field:<abc>', 0, 13)
           .child
-          .expect<FieldScope>('field:<abc>', 4, 13)
+          .expect<FieldScopeQuery>('field:<abc>', 4, 13)
         ..field.expect<TextQuery>('<field>', 4, 9)
         ..child.expect<TextQuery>('<abc>', 10, 13);
-      parseQuery('a:').expect<FieldScope>('a:<>', 0, 2);
+      parseQuery('a:').expect<FieldScopeQuery>('a:<>', 0, 2);
       parseQuery('a: AND a').expect<AndQuery>('(a:<> <a>)', 0, 8);
     });
 
     test('special scoped', () {
-      parseQuery('a*:abc').expect<FieldScope>('a*:<abc>', 0, 6);
-      parseQuery('a%:"abc"').expect<FieldScope>('a%:"<abc>"', 0, 8);
+      parseQuery('a*:abc').expect<FieldScopeQuery>('a*:<abc>', 0, 6);
+      parseQuery('a%:"abc"').expect<FieldScopeQuery>('a%:"<abc>"', 0, 8);
     });
 
     test('compare', () {

@@ -64,6 +64,7 @@ class PhraseQuery extends TextQuery {
 }
 
 /// Scopes [child] [Query] to be applied only on the [field].
+@Deprecated('Use FieldScopeQuery instead.')
 class FieldScope extends Query {
   final TextQuery field;
   final Query child;
@@ -77,6 +78,16 @@ class FieldScope extends Query {
   @override
   String toString({bool debug = false}) =>
       '$field:${child.toString(debug: debug)}';
+}
+
+/// Scopes [child] [Query] to be applied only on the [field].
+// ignore: deprecated_member_use_from_same_package
+class FieldScopeQuery extends FieldScope {
+  const FieldScopeQuery({
+    required super.field,
+    required super.child,
+    required super.position,
+  });
 }
 
 /// Describes a [field] [operator] [text] tripled (e.g. year < 2000).
