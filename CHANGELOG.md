@@ -1,3 +1,7 @@
+## 2.2.0
+
+- Make `Query` sealed instead of abstract.
+
 ## 2.1.0
 
 - Naming consistency refactor:

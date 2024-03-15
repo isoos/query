@@ -26,7 +26,7 @@ abstract class QueryEvaluator<R> {
 }
 
 /// Base interface for queries.
-abstract class Query {
+sealed class Query {
   const Query({
     required this.position,
   });
