@@ -1,3 +1,7 @@
+## 2.1.1
+
+- Updated `petitparser` dependency.
+
 ## 2.1.0
 
 - Naming consistency refactor:
