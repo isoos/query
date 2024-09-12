@@ -9,8 +9,8 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  petitparser: ^5.0.0
+  petitparser: ^6.0.0
 
 dev_dependencies:
-  lints: ^2.0.0
+  lints: ^4.0.0
   test: ^1.0.0
