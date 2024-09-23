@@ -3,7 +3,11 @@ description: >
   Search query parser to implement customized search.
   Supports boolean groups, field scopes, ranges, comparisons...
 version: 2.2.0
-homepage: https://github.com/isoos/query
+repository: https://github.com/isoos/query
+topics:
+  - query
+  - parser
+  - query-parser
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
